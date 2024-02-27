@@ -1,11 +1,12 @@
 Package: NNMF
 Type: Package
-Title: What the package does (short line)
+Title: Neighborhood Non-negative matrix factorization
 Version: 1.0
 Date: 2024-02-20
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
+Author: Ragnhild Laursen
+Maintainer: Ragnhild Laursen <ragnhild@math.au.dk>
 Description: More about what it does (maybe more than one line)
 License: What license is it under?
 Imports: Rcpp (>= 1.0.11)
 LinkingTo: Rcpp, RcppArmadillo
+RoxygenNote: 7.3.1

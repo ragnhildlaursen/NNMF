@@ -29,11 +29,11 @@ dist_index = function(X,index){
 
 #' Creates batches of observations that are close in distance
 #'
-#' @param location a matrix of locations for observations
-#' @param size an integer determining the size of the batches
+#' @param location a matrix of locations (observations x 2)
+#' @param size an integer determining the size of the batches (overwrites no_group parameter)
 #' @param no_groups an integer determining the number of batches 
 #'
-#' @return A vector of the length of the number of location
+#' @return A vector of the same length as the number of locations
 #' @export
 #'
 #' @examples
