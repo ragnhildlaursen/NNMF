@@ -16,4 +16,7 @@ location = matrix(runif(10*2), nrow = 10) # location of your observation (observ
 
 res = nnmf(data = data, noSignatures = 2, location = location)
 
+res$weights # The weights for each signature
+res$signatures # The two signatures
+
 ```
