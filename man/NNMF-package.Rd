@@ -13,8 +13,7 @@
 The DESCRIPTION file:
 \packageDESCRIPTION{NNMF}
 \packageIndices{NNMF}
-~~ An overview of how to use the package, including the most important ~~
-~~ functions ~~
+The NNMF package provides a fast function 'nnmf' to calculate the factors of non-negative matrix factorization for spatial data. It makes neighboring observations share similar weights for the different factors using gaussian smoothing in the multiplicative updates of NMF. 
 }
 \author{
 \packageAuthor{NNMF}

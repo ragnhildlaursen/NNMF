@@ -8,11 +8,11 @@ nnmf(
   data,
   noSignatures,
   location,
-  lengthscale,
+  lengthscale = NULL,
   batch = 1,
   maxiter = 10000,
   tolerance = 1e-08,
-  initial = 5,
+  initial = 1,
   smallIter = 100,
   error_freq = 10,
   kernel_cutoff = 0.5,
@@ -24,33 +24,33 @@ nnmf(
 
 \item{noSignatures}{integer determining the rank of the factorization, which determines the number of signatures}
 
-\item{location}{a matrix of the spatial locations of the observations}
+\item{location}{a matrix of the spatial locations of the observations (observations x 2)}
 
 \item{lengthscale}{the lengthscale of the neighborhood.}
 
-\item{batch}{a vector of the same length as the observations to devide the observations into batches. Default is to have all observations in one batch}
+\item{batch}{a vector of the same length as the observations to divide the observations into batches. Default is to have all observations in one batch}
 
 \item{maxiter}{integer determining the maximum number of iterations}
 
-\item{tolerance}{a small value to detmine the stopping criteria. default is 1e-8.}
+\item{tolerance}{a small value to determine the stopping criteria. default is 1e-8.}
 
-\item{initial}{}
+\item{initial}{the number of intializations. default is 1.}
 
-\item{smallIter}{}
+\item{smallIter}{the number of iterations to run each initialization. Afterwards the initialization with the smallest error is run till convergence.}
 
-\item{error_freq}{}
+\item{error_freq}{an interger determining how often to calculate the error.}
 
-\item{kernel_cutoff}{}
+\item{kernel_cutoff}{a value between 0 and 1, where everything below this value is set to zero in the kernel}
 
-\item{normalize}{}
+\item{normalize}{a logical value indicating whether the observations should be normalized.}
 }
 \value{
 A list of the matrices derived by the factorization and the corresponding generalized Kullback-Leibler
 \itemize{
  \item exposures - Non-negative matrix of dimension observations x noSignatures
  \item signatures - Non-negative matrix of dimension noSignatures x features, where rows sum to one.
- \item gkl - Smallest Value of the Generalized Kullback-Leibler
- \item gklvalues - The GKL values at each iteration from error_freq
+ \item gkl - Final error of the Generalized Kullback-Leibler
+ \item gklvalues - a vector of the length of maxiter. Includes the GKL values calculated at the frequency of error_freq
  }
 }
 \description{
