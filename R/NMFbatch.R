@@ -68,16 +68,16 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 #'
 #' @param data a matrix of non-negative entries with the observations as rows and features as columns
 #' @param noSignatures integer determining the rank of the factorization, which determines the number of signatures
-#' @param location a matrix of the spatial locations of the observations (observations x 2) 
-#' @param lengthscale the lengthscale of the neighborhood. 
-#' @param batch a vector of the same length as the observations to divide the observations into batches. Default is to have all observations in one batch
-#' @param maxiter integer determining the maximum number of iterations
-#' @param tolerance a small value to determine the stopping criteria. default is 1e-8.
-#' @param initial the number of intializations. default is 1.
-#' @param smallIter the number of iterations to run each initialization. Afterwards the initialization with the smallest error is run till convergence.
-#' @param error_freq an interger determining how often to calculate the error.
-#' @param kernel_cutoff a value between 0 and 1, where everything below this value is set to zero in the kernel 
-#' @param normalize a logical value indicating whether the observations should be normalized. 
+#' @param location a matrix of the spatial locations of the observations (observations x 2). If no location is specified regular NMF is used.
+#' @param lengthscale the lengthscale of the neighborhood. If no lengthscale are specified then the lengthscale is set to 1/10 of the density of your points.
+#' @param batch a vector of the same length as the observations to divide the observations into batches. Default is to have all observations in one batch.
+#' @param maxiter integer determining the maximum number of iterations. Default is 10000
+#' @param tolerance a small value to determine the stopping criteria. Default is 1e-8.
+#' @param initial the number of intializations. Default is 1.
+#' @param smallIter the number of iterations to run each initialization. Afterwards the initialization with the smallest error is run till convergence. Default is 100.
+#' @param error_freq an interger determining how often to calculate the error. Default is 10.
+#' @param kernel_cutoff a value between 0 and 1, where everything below this value is set to zero in the kernel. Default is 0.5.
+#' @param normalize a logical value indicating whether the observations should be normalized. Default is TRUE. 
 #'
 #' @return A list of the matrices derived by the factorization and the corresponding generalized Kullback-Leibler
 #' \itemize{
@@ -170,7 +170,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
 #'
 #' @param signatures a matrix of the signatures (number of signatures x features)
 #' @param feature_names a vector of names for the features.
-#' @param ntop an integer of how many of the top features to output
+#' @param ntop an integer of how many of the top features to output. Default is 10.
 #'
 #' @return a matrix of top features for each signature. (number of signatures x ntop)
 #' @export

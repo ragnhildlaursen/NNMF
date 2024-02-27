@@ -11,7 +11,7 @@ topfeatures(signatures, feature_names, ntop = 10)
 
 \item{feature_names}{a vector of names for the features.}
 
-\item{ntop}{an integer of how many of the top features to output}
+\item{ntop}{an integer of how many of the top features to output. Default is 10.}
 }
 \value{
 a matrix of top features for each signature. (number of signatures x ntop)
