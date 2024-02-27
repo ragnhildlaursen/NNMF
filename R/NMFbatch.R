@@ -89,13 +89,23 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 #' @export
 #'
 #' @examples
-nnmf = function(data, noSignatures, location, lengthscale = NULL, batch = 1, maxiter = 10000, tolerance = 1e-8, initial = 1, smallIter = 100, error_freq = 10,kernel_cutoff = 0.5,normalize = TRUE){
+nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 10000, tolerance = 1e-8, initial = 1, smallIter = 100, error_freq = 10,kernel_cutoff = 0.5,normalize = TRUE){
     
     if(normalize){
         row_sum = rowSums(data)
         data = data/row_sum*mean(row_sum)
     }
     
+  
+    if(is.null(location)){
+      cat("Running regular NMF, as no locations were specified.")
+      out = nmfgen(data = data, noSignatures = noSignatures, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
+    }else{
+      
+      if(nrow(data) != nrow(location)){
+        stop("The number of rows in location must match the number of rows in data.")
+      }
+        
     if(is.null(lengthscale)){
       r1 = range(location[,1])
       r2 = range(location[,2])
@@ -105,7 +115,10 @@ nnmf = function(data, noSignatures, location, lengthscale = NULL, batch = 1, max
     }
     unique_batches = unique(batch)
     if(length(unique_batches) == 1){
-        print("Everything is run in one batch")
+      cat("All ",nrow(data)," observations are run in one batch.")
+      if(nrow(data) > 50000){
+        stop("There is too many observation to run it in one batch. Use groupondist() to make batches with size 20000 or smaller.")
+      }
 
         dist = dist_fun(location)
         
@@ -141,6 +154,7 @@ nnmf = function(data, noSignatures, location, lengthscale = NULL, batch = 1, max
             out = nmfspatialbatch(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
         }
 
+    }
     }
     output = list()
     output$weights = out$exposures
