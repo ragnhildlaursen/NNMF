@@ -2,8 +2,6 @@
 #' @import Rcpp
 #' @import RcppArmadillo
 
-# sourceCpp("src/NMFspatial2.cpp")
-
 dist_fun = function(X){
     X2 = rowSums(X^2)
     X2 = matrix(X2, nrow = length(X2), ncol = length(X2), byrow = F)
@@ -83,10 +81,10 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 #'
 #' @return A list of the matrices derived by the factorization and the corresponding generalized Kullback-Leibler
 #' \itemize{
-#'  \item exposures - Non-negative matrix of dimension observations x noSignatures
+#'  \item weights - Non-negative matrix of dimension observations x noSignatures
 #'  \item signatures - Non-negative matrix of dimension noSignatures x features, where rows sum to one.
-#'  \item gkl - Final error of the Generalized Kullback-Leibler
-#'  \item gklvalues - a vector of the length of maxiter. Includes the GKL values calculated at the frequency of error_freq
+#'  \item error - Final error of the Generalized Kullback-Leibler
+#'  \item errorvalues - a vector of the length of maxiter. Includes the GKL values calculated at the frequency of error_freq
 #'  }
 #' @export
 #'
@@ -144,6 +142,48 @@ nnmf = function(data, noSignatures, location, lengthscale = NULL, batch = 1, max
         }
 
     }
+    output = list()
+    output$weights = out$exposures
+    output$signatures = out$signatures
+    output$error = out$gkl
+    output$errorvalues = out$gklvalues
+    return(output)
+}
+
+
+
+#' Find the top features for each signature
+#'
+#' @param signatures a matrix of the signatures (number of signatures x features)
+#' @param feature_names a vector of names for the features.
+#' @param ntop an integer of how many of the top features to output
+#'
+#' @return a matrix of top features for each signature. (number of signatures x ntop)
+#' @export
+#'
+#' @examples
+topfeatures = function(signatures, feature_names, ntop = 10){
+  if(ncol(signatures) != length(feature_names)){
+    stop("The feature_names need to be the same length as the number of columns in signatures.")
+  }
+  dat = t(signatures)
+  dat_new=NULL
+  for(ii in 1:nrow(dat)){
+    rr=dat[ii,]
+    m1=max(rr)
+    m2=max(rr[-which(rr==m1)])
+    mm=rep(m1, length(rr))
+    mm[which(rr==m1)]=m2
+    ns=rr*log((rr+1e-10)/(mm+1e-10))
+    dat_new=rbind(dat_new, ns)
+  }
+  
+  weight_topgene = NULL
+  for(topic in 1:ncol(dat)){
+    idx = order(dat_new[,topic], decreasing = T)
+    weighting = feature_names[idx[1:ntop]]
     
-    return(out)
+    weight_topgene = rbind(weight_topgene,c(topic,weighting))
+  }
+  return(weight_topgene)
 }

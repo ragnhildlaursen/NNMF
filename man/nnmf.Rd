@@ -47,10 +47,10 @@ nnmf(
 \value{
 A list of the matrices derived by the factorization and the corresponding generalized Kullback-Leibler
 \itemize{
- \item exposures - Non-negative matrix of dimension observations x noSignatures
+ \item weights - Non-negative matrix of dimension observations x noSignatures
  \item signatures - Non-negative matrix of dimension noSignatures x features, where rows sum to one.
- \item gkl - Final error of the Generalized Kullback-Leibler
- \item gklvalues - a vector of the length of maxiter. Includes the GKL values calculated at the frequency of error_freq
+ \item error - Final error of the Generalized Kullback-Leibler
+ \item errorvalues - a vector of the length of maxiter. Includes the GKL values calculated at the frequency of error_freq
  }
 }
 \description{
