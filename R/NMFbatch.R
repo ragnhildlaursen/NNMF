@@ -109,7 +109,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
     if(is.null(lengthscale)){
       r1 = range(location[,1])
       r2 = range(location[,2])
-      lengthscale = (r1[2] - r1[1])*(r2[2] - r2[1])/nrow(count)
+      lengthscale = (r1[2] - r1[1])*(r2[2] - r2[1])/nrow(data)
       lengthscale = signif(lengthscale,1)/10
       cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results.")
     }
