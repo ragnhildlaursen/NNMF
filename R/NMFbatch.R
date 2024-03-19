@@ -98,12 +98,12 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
     
   
     if(is.null(location)){
-      cat("Running regular NMF, as no locations were specified.")
+      cat("Running regular NMF, as no locations were specified. \n")
       out = nmfgen(data = data, noSignatures = noSignatures, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
     }else{
       
       if(nrow(data) != nrow(location)){
-        stop("The number of rows in location must match the number of rows in data.")
+        stop("The number of rows in location must match the number of rows in data. \n")
       }
         
     if(is.null(lengthscale)){
@@ -111,13 +111,13 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
       r2 = range(location[,2])
       lengthscale = (r1[2] - r1[1])*(r2[2] - r2[1])/nrow(data)
       lengthscale = signif(lengthscale,1)/10
-      cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results.")
+      cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results. \n")
     }
     unique_batches = unique(batch)
     if(length(unique_batches) == 1){
-      cat("All ",nrow(data)," observations are run in one batch.")
+      cat("All ",nrow(data)," observations are run in one batch. \n")
       if(nrow(data) > 50000){
-        stop("There is too many observation to run it in one batch. Use groupondist() to make batches with size 20000 or smaller.")
+        stop("There is too many observation to run it in one batch. Use groupondist() to make batches with size 20000 or smaller. \n")
       }
 
         dist = dist_fun(location)
