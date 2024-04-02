@@ -85,6 +85,7 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 #'  \item signatures - Non-negative matrix of dimension noSignatures x features, where rows sum to one.
 #'  \item error - Final error of the Generalized Kullback-Leibler
 #'  \item errorvalues - a vector of the length of maxiter. Includes the GKL values calculated at the frequency of error_freq
+#'  \item avg_nn - The average number of nearest neighbors included in averaging.
 #'  }
 #' @export
 #'
@@ -96,7 +97,8 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
         data = data/row_sum*mean(row_sum)
     }
     
-  
+    mean_nn = 0
+    
     if(is.null(location)){
       cat("Running regular NMF, as no locations were specified. \n")
       out = nmfgen(data = data, noSignatures = noSignatures, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
@@ -106,33 +108,38 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
         stop("The number of rows in location must match the number of rows in data. \n")
       }
         
-    if(is.null(lengthscale)){
-      r1 = range(location[,1])
-      r2 = range(location[,2])
-      lengthscale = (r1[2] - r1[1])*(r2[2] - r2[1])/nrow(data)
-      lengthscale = signif(lengthscale,1)/10
-      cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results. \n")
-    }
-    unique_batches = unique(batch)
-    if(length(unique_batches) == 1){
-      cat("All ",nrow(data)," observations are run in one batch. \n")
-      if(nrow(data) > 50000){
-        stop("There is too many observation to run it in one batch. Use groupondist() to make batches with size 20000 or smaller. \n")
+      if(is.null(lengthscale)){
+        r1 = range(location[,1])
+        r2 = range(location[,2])
+        lengthscale = (r1[2] - r1[1])*(r2[2] - r2[1])/nrow(data)
+        lengthscale = signif(lengthscale,1)/10
+        cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results. \n")
       }
+    
+      unique_batches = unique(batch)
+    
+      if(length(unique_batches) == 1){
+        cat("All ",nrow(data)," observations are run in one batch. \n")
+        
+        if(nrow(data) > 50000){
+          stop("There is too many observation to run it in one batch. Use groupondist() to make batches with size 20000 or smaller. \n")
+        }
 
         dist = dist_fun(location)
         
         # calculating covariance
         sigma = exp(-dist/(lengthscale^2))
         sigma[sigma < kernel_cutoff] = 0
-
+        
+        mean_nn = mean(rowSums(sigma > 0) - 1)
         weight = sigma/rowSums(sigma)
-
+        
         out = nmfspatial(data = data, noSignatures = noSignatures, weight = weight, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter)
 
-    }else{
+      }else{
         weights = list()
         batch_list = list()
+        first_batch = TRUE
         for(i in unique_batches){
             index = which(batch == i)
             batch_list[[i]] = index - 1
@@ -144,6 +151,13 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
             # calculating covariance
             sigma = exp(-dist/(lengthscale^2))
             sigma[sigma < kernel_cutoff] = 0
+            
+            if(first_batch){
+              mean_nn = mean(rowSums(sigma > 0) - 1)
+              first_batch = FALSE
+            }else{
+              mean_nn = 0.5*mean_nn + 0.5*mean(rowSums(sigma > 0) - 1)
+            }
 
             weights[[i]] = sigma/rowSums(sigma)
         }
@@ -161,6 +175,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
     output$signatures = out$signatures
     output$error = out$gkl
     output$errorvalues = out$gklvalues
+    output$avg_nn = mean_nn
     return(output)
 }
 
@@ -178,7 +193,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
 #' @examples
 topfeatures = function(signatures, feature_names, ntop = 10){
   if(ncol(signatures) != length(feature_names)){
-    stop("The feature_names need to be the same length as the number of columns in signatures.")
+    stop("The feature_names need to be the same length as the number of columns in signatures. \n")
   }
   dat = t(signatures)
   dat_new=NULL

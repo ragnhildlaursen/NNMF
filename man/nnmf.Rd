@@ -51,6 +51,7 @@ A list of the matrices derived by the factorization and the corresponding genera
  \item signatures - Non-negative matrix of dimension noSignatures x features, where rows sum to one.
  \item error - Final error of the Generalized Kullback-Leibler
  \item errorvalues - a vector of the length of maxiter. Includes the GKL values calculated at the frequency of error_freq
+ \item avg_nn - The average number of nearest neighbors included in averaging.
  }
 }
 \description{
