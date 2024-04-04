@@ -2,26 +2,62 @@
 #' @import Rcpp
 #' @import RcppArmadillo
 
-dist_fun = function(X){
+
+
+#############################################
+
+#' The distance between two matrices of location
+#'
+#' @param X 
+#' @param Y 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+dist_fun = function(X, Y = NULL){
+  if(is.null(Y)){
     X2 = rowSums(X^2)
     X2 = matrix(X2, nrow = length(X2), ncol = length(X2), byrow = F)
     r = X2 - 2*X%*%t(X) + t(X2)
-    if(any(r<0)){
-        warning("Some distances were smaller than zero! Try scaling up the locations.")
-        r[r<0] = 0
+  }else{
+    if(ncol(X) != ncol(Y)){
+      stop("The number of columns in X and Y need to be the same.")
     }
-        
-    return(r)
+    
+    X2 = rowSums(X^2)
+    Y2 = rowSums(Y^2)
+    X2 = matrix(X2, nrow = length(X2), ncol = length(Y2), byrow = F)
+    Y2 = matrix(Y2, nrow = length(Y2), ncol = nrow(X2), byrow = F)
+    
+    r = X2 - 2*(X%*%t(Y)) + t(Y2)
+  }
+  
+  if(any(r<0)){
+    warning("Some distances were smaller than zero! Try scaling up the locations.")
+    r[r<0] = 0
+  }
+  
+  return(r)
 }
 
+
+
+
 dist_index = function(X,index){
-    X2 = rowSums(X^2)
+  X2 = rowSums(X^2)
+  if(length(index) < 2){
     r = sum(X[index,]^2) - 2*X[index,]%*%t(X) + X2
-    if(any(r<0)){
-        warning("Some distances were smaller than zero! Try scaling up the locations.")
-        r[r<0] = 0
-    } 
-    return(r)
+  }else{
+    X2 = matrix(X2, nrow = length(index), ncol = length(X2), byrow = T)
+    r = rowSums(X[index,]^2) - 2*X[index,]%*%t(X) + X2
+  }
+  
+  if(any(r<0)){
+    warning("Some distances were smaller than zero! Try scaling up the locations.")
+    r[r<0] = 0
+  } 
+  return(r)
 }
 
 
@@ -181,38 +217,3 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
 
 
 
-#' Find the top features for each signature
-#'
-#' @param signatures a matrix of the signatures (number of signatures x features)
-#' @param feature_names a vector of names for the features.
-#' @param ntop an integer of how many of the top features to output. Default is 10.
-#'
-#' @return a matrix of top features for each signature. (number of signatures x ntop)
-#' @export
-#'
-#' @examples
-topfeatures = function(signatures, feature_names, ntop = 10){
-  if(ncol(signatures) != length(feature_names)){
-    stop("The feature_names need to be the same length as the number of columns in signatures. \n")
-  }
-  dat = t(signatures)
-  dat_new=NULL
-  for(ii in 1:nrow(dat)){
-    rr=dat[ii,]
-    m1=max(rr)
-    m2=max(rr[-which(rr==m1)])
-    mm=rep(m1, length(rr))
-    mm[which(rr==m1)]=m2
-    ns=rr*log((rr+1e-10)/(mm+1e-10))
-    dat_new=rbind(dat_new, ns)
-  }
-  
-  weight_topgene = NULL
-  for(topic in 1:ncol(dat)){
-    idx = order(dat_new[,topic], decreasing = T)
-    weighting = feature_names[idx[1:ntop]]
-    
-    weight_topgene = rbind(weight_topgene,c(topic,weighting))
-  }
-  return(weight_topgene)
-}
