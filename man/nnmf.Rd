@@ -12,11 +12,11 @@ nnmf(
   batch = 1,
   maxiter = 10000,
   tolerance = 1e-08,
-  initial = 1,
+  initial = 3,
   smallIter = 100,
   error_freq = 10,
   kernel_cutoff = 0.5,
-  normalize = TRUE
+  normalize = FALSE
 )
 }
 \arguments{

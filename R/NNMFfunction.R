@@ -8,10 +8,10 @@
 
 #' The distance between two matrices of location
 #'
-#' @param X 
-#' @param Y 
+#' @param X matrix of location
+#' @param Y optional other matrix of location to take distance to.
 #'
-#' @return
+#' @return symmetric matrix of distances.
 #' @export
 #'
 #' @examples
@@ -126,7 +126,7 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 #' @export
 #'
 #' @examples
-nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 10000, tolerance = 1e-8, initial = 1, smallIter = 100, error_freq = 10,kernel_cutoff = 0.5,normalize = TRUE){
+nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 10000, tolerance = 1e-8, initial = 3, smallIter = 100, error_freq = 10,kernel_cutoff = 0.5,normalize = FALSE){
     
     if(normalize){
         row_sum = rowSums(data)
@@ -144,13 +144,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
         stop("The number of rows in location must match the number of rows in data. \n")
       }
         
-      if(is.null(lengthscale)){
-        r1 = range(location[,1])
-        r2 = range(location[,2])
-        lengthscale = (r1[2] - r1[1])*(r2[2] - r2[1])/nrow(data)
-        lengthscale = signif(lengthscale,1)/10
-        cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results. \n")
-      }
+      
     
       unique_batches = unique(batch)
     
@@ -162,6 +156,12 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
         }
 
         dist = dist_fun(location)
+        
+        if(is.null(lengthscale)){
+          lengthscale = mean(apply(sqrt(dist),1,function(x) sort(x)[10]))
+          
+          cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results. \n")
+        }
         
         # calculating covariance
         sigma = exp(-dist/(lengthscale^2))
@@ -178,12 +178,18 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
         first_batch = TRUE
         for(i in unique_batches){
             index = which(batch == i)
-            batch_list[[i]] = index - 1
+            batch_list[[paste(i)]] = index - 1
 
             X = location[index,]
         
             dist = dist_fun(X)
-        
+            
+            if(is.null(lengthscale)){
+              lengthscale = mean(apply(sqrt(dist),1,function(x) sort(x)[10]))
+              
+              cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results. \n")
+            } 
+            
             # calculating covariance
             sigma = exp(-dist/(lengthscale^2))
             sigma[sigma < kernel_cutoff] = 0

@@ -13,11 +13,11 @@ nmfspatialbatch2 <- function(data, noSignatures, weight, batch, maxiter = 10000L
     .Call(`_NNMF_nmfspatialbatch2`, data, noSignatures, weight, batch, maxiter, tolerance, error_freq)
 }
 
-nmftrain <- function(data, exposures, signatures, weight, iter = 5000L) {
-    .Call(`_NNMF_nmftrain`, data, exposures, signatures, weight, iter)
+nmfspatial <- function(data, noSignatures, weight, maxiter = 10000L, tolerance = 1e-8, initial = 5L, smallIter = 100L, error_freq = 10L) {
+    .Call(`_NNMF_nmfspatial`, data, noSignatures, weight, maxiter, tolerance, initial, smallIter, error_freq)
 }
 
-nmfspatial <- function(data, noSignatures, weight, maxiter = 10000L, tolerance = 1e-8, initial = 100L, smallIter = 500L) {
-    .Call(`_NNMF_nmfspatial`, data, noSignatures, weight, maxiter, tolerance, initial, smallIter)
+nmftrain <- function(data, exposures, signatures, weight, iter = 5000L) {
+    .Call(`_NNMF_nmftrain`, data, exposures, signatures, weight, iter)
 }
 

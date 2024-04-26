@@ -64,6 +64,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// nmfspatial
+List nmfspatial(arma::mat data, int noSignatures, arma::mat weight, int maxiter, double tolerance, int initial, int smallIter, int error_freq);
+RcppExport SEXP _NNMF_nmfspatial(SEXP dataSEXP, SEXP noSignaturesSEXP, SEXP weightSEXP, SEXP maxiterSEXP, SEXP toleranceSEXP, SEXP initialSEXP, SEXP smallIterSEXP, SEXP error_freqSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< int >::type noSignatures(noSignaturesSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type weight(weightSEXP);
+    Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
+    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    Rcpp::traits::input_parameter< int >::type initial(initialSEXP);
+    Rcpp::traits::input_parameter< int >::type smallIter(smallIterSEXP);
+    Rcpp::traits::input_parameter< int >::type error_freq(error_freqSEXP);
+    rcpp_result_gen = Rcpp::wrap(nmfspatial(data, noSignatures, weight, maxiter, tolerance, initial, smallIter, error_freq));
+    return rcpp_result_gen;
+END_RCPP
+}
 // nmftrain
 List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::mat weight, int iter);
 RcppExport SEXP _NNMF_nmftrain(SEXP dataSEXP, SEXP exposuresSEXP, SEXP signaturesSEXP, SEXP weightSEXP, SEXP iterSEXP) {
@@ -79,30 +97,13 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// nmfspatial
-List nmfspatial(arma::mat data, int noSignatures, arma::mat weight, int maxiter, double tolerance, int initial, int smallIter);
-RcppExport SEXP _NNMF_nmfspatial(SEXP dataSEXP, SEXP noSignaturesSEXP, SEXP weightSEXP, SEXP maxiterSEXP, SEXP toleranceSEXP, SEXP initialSEXP, SEXP smallIterSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< int >::type noSignatures(noSignaturesSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type weight(weightSEXP);
-    Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
-    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
-    Rcpp::traits::input_parameter< int >::type initial(initialSEXP);
-    Rcpp::traits::input_parameter< int >::type smallIter(smallIterSEXP);
-    rcpp_result_gen = Rcpp::wrap(nmfspatial(data, noSignatures, weight, maxiter, tolerance, initial, smallIter));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_NNMF_nmfgen", (DL_FUNC) &_NNMF_nmfgen, 7},
     {"_NNMF_nmfspatialbatch", (DL_FUNC) &_NNMF_nmfspatialbatch, 9},
     {"_NNMF_nmfspatialbatch2", (DL_FUNC) &_NNMF_nmfspatialbatch2, 7},
+    {"_NNMF_nmfspatial", (DL_FUNC) &_NNMF_nmfspatial, 8},
     {"_NNMF_nmftrain", (DL_FUNC) &_NNMF_nmftrain, 5},
-    {"_NNMF_nmfspatial", (DL_FUNC) &_NNMF_nmfspatial, 7},
     {NULL, NULL, 0}
 };
 

@@ -111,7 +111,7 @@ List nmfgen(arma::mat data, int noSignatures, int maxiter = 10000, double tolera
     if(t - floor(t/error_freq)*error_freq == 0){
       gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
       
-      if (2*std::abs(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance){
+      if (2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance & t > 10){
         Rcout << "Total iterations:";
         Rcout << t;
         Rcout << "\n";
@@ -143,7 +143,7 @@ List nmfspatialbatch(arma::mat data, int noSignatures, List weight, List batch, 
   auto signatures = std::get<1>(res);
   auto gklValue = std::get<2>(res);
   
-  for(int i = 1; i < initial; i++){
+  for(int i = 0; i < initial; i++){
     auto res = nmf1(data, noSignatures, smallIter);
     auto gklNew = std::get<2>(res);
     
@@ -193,8 +193,14 @@ List nmfspatialbatch(arma::mat data, int noSignatures, List weight, List batch, 
     
     if(t - floor(t/error_freq)*error_freq == 0){
       gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
-    
-      if (2*std::abs(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance){
+      if(t - floor(t/100)*100 == 0){
+        Rcout << "Total iterations:";
+        Rcout << t;
+        Rcout << "  error:";
+        Rcout << gklNew;
+        Rcout << "\n";
+      }
+      if (2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance & t > 2*error_freq){
         Rcout << "Total iterations:";
         Rcout << t;
         Rcout << "\n";
@@ -292,13 +298,14 @@ List nmfspatialbatch2(arma::mat data, int noSignatures, List weight, List batch,
     
     if(t - floor(t/error_freq)*error_freq == 0){
       gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
-      // Rcout << "Total iterations:";
-      // Rcout << t;
-      // Rcout << "  error:";
-      // Rcout << gklNew;
-      // Rcout << "\n";
-    
-      if (2*std::abs(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance){
+      if(t - floor(t/100)*100 == 0){
+      Rcout << "Total iterations:";
+      Rcout << t;
+      Rcout << "  error:";
+      Rcout << gklNew;
+      Rcout << "\n";
+      }
+      if (2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance & t > 2*error_freq ){
         Rcout << "Total iterations:";
         Rcout << t;
         Rcout << "\n";
@@ -320,43 +327,7 @@ List nmfspatialbatch2(arma::mat data, int noSignatures, List weight, List batch,
 }
 
 // [[Rcpp::export]]
-List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::mat weight, int iter = 5000) {
-  
-  arma::mat estimate = exposures * signatures;
-  arma::mat fraq = data/estimate;
-  
-  for(int t = 0; t < iter; t++){
-    
-    signatures = signatures % (arma::trans(exposures) * fraq);
-    signatures = arma::normalise(signatures,1,1);
-    
-    signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
-    
-    estimate = exposures * signatures;
-    fraq = data/estimate;
-    
-    exposures = exposures % (fraq * arma::trans(signatures));
-    arma::colvec exp_sum = sum(exposures,1);
-    exposures = exposures.each_col() / exp_sum;
-    exposures = weight * exposures;
-    exposures = exposures.each_col() % exp_sum;
-    
-    exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
-    
-    estimate = exposures * signatures;
-    fraq = data/estimate;
-    
-  }
-  double gkl = error(arma::vectorise(data),arma::vectorise(estimate));
-  
-  List output = List::create(Named("exposures") = exposures,
-                             Named("signatures") = signatures,
-                             Named("gkl") = gkl);
-  return output;
-}
-
-// [[Rcpp::export]]
-List nmfspatial(arma::mat data, int noSignatures, arma::mat weight, int maxiter = 10000, double tolerance = 1e-8, int initial = 100, int smallIter = 500) {
+List nmfspatial(arma::mat data, int noSignatures, arma::mat weight, int maxiter = 10000, double tolerance = 1e-8, int initial = 5, int smallIter = 100, int error_freq = 10) {
   
   auto res = nmf1(data, noSignatures, smallIter);
   auto exposures = std::get<0>(res);
@@ -404,17 +375,17 @@ List nmfspatial(arma::mat data, int noSignatures, arma::mat weight, int maxiter 
     fraq = data/estimate;
     
     gklvalues.at(t) = gklOld;
-    
+    if(t - floor(t/error_freq)*error_freq == 0){
     gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
     
-    if (2*std::abs(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance){
+    if (2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance & t > 2*error_freq){
       Rcout << "Total iterations:";
       Rcout << t;
       Rcout << "\n";
       break;
     }
     gklOld = gklNew;
-    
+    }
   }
   
   
@@ -422,5 +393,41 @@ List nmfspatial(arma::mat data, int noSignatures, arma::mat weight, int maxiter 
                              Named("signatures") = signatures,
                              Named("gkl") = gklNew,
                              Named("gklvalues") = gklvalues);
+  return output;
+}
+
+// [[Rcpp::export]]
+List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::mat weight, int iter = 5000) {
+  
+  arma::mat estimate = exposures * signatures;
+  arma::mat fraq = data/estimate;
+  
+  for(int t = 0; t < iter; t++){
+    
+    signatures = signatures % (arma::trans(exposures) * fraq);
+    signatures = arma::normalise(signatures,1,1);
+    
+    signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    
+    estimate = exposures * signatures;
+    fraq = data/estimate;
+    
+    exposures = exposures % (fraq * arma::trans(signatures));
+    arma::colvec exp_sum = sum(exposures,1);
+    exposures = exposures.each_col() / exp_sum;
+    exposures = weight * exposures;
+    exposures = exposures.each_col() % exp_sum;
+    
+    exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    
+    estimate = exposures * signatures;
+    fraq = data/estimate;
+    
+  }
+  double gkl = error(arma::vectorise(data),arma::vectorise(estimate));
+  
+  List output = List::create(Named("exposures") = exposures,
+                             Named("signatures") = signatures,
+                             Named("gkl") = gkl);
   return output;
 }
