@@ -22,7 +22,7 @@ If you have a very large dataset (more than 20.000 observations) it is recommend
 ```
 batch_id = groupondist(location,size = 100)
 ```
-Now you can run your model with the specified batches and you can start by using the predined lengthscale, which you can later try to change after assessing your results.
+Now you can run your model with the specified batches and you can start by using the predefined lengthscale, which you can later try to change after assessing your results.
 ```
 res = nnmf(data = data, noSignatures = 2, location = location, batch = batch_id)
 
