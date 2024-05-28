@@ -102,7 +102,7 @@ nn_adj = function(location,celltype,nn = 5,sampleid = NULL){
 #'
 #' @param data        A matrix including your data 
 #' @param location    A matrix with the same number of rows as the data
-#' @param max_avg_nn  An integer determining the the average neighbor for the maximum length scale tested 
+#' @param max_avg_nn  An integer determining the the average neighbor for the maximum length scale tested. The default is 20. 
 #' @param max_pct     A number between 0 and 1 determining the percentage of data points to the maximum length scale 
 #' @param dist        A symmetric distance matrix of the data points. Must have the same number of rows and columns as the number of rows in data. If this is specified the location is ignored. 
 #' @param column_ls   A logical determining whether a length scale should be determined for each column in the data (TRUE) or default = FALSE, where only one length scale is determined.
@@ -111,7 +111,7 @@ nn_adj = function(location,celltype,nn = 5,sampleid = NULL){
 #' @export
 #'
 #' @examples
-estimate_lengthscale = function(data, location = NULL, max_avg_nn = NULL, max_pct = NULL, dist = NULL, column_ls = FALSE){
+estimate_lengthscale = function(data, location = NULL, max_avg_nn = 20, max_pct = NULL, dist = NULL, column_ls = FALSE){
   groups = sample(1:2,nrow(data), replace = T)
   
   if(is.null(dist)){
@@ -131,20 +131,17 @@ estimate_lengthscale = function(data, location = NULL, max_avg_nn = NULL, max_pc
   
   dist = sqrt(dist)
   min_val = min(apply(dist,1,function(x) sort(x)[1]))
-  if(is.null(max_avg_nn)){
-    if(is.null(max_pct)){
-      max_val = mean(apply(dist,1,function(x) sort(x)[20]))
-    }else{
+  
+  if(is.null(max_pct)){
+      if(max_avg_nn<1 | round(max_avg_nn) != max_avg_nn){
+        stop("max_avg_nn should be a positive integer.")
+      }
+      max_val = mean(apply(dist,1,function(x) sort(x)[max_avg_nn]))
+  }else{
       if(max_pct > 1 | max_pct <= 0){
         stop("max_pct needs to be a value between 0 and 1.")
       }
       max_val = mean(apply(dist,1,function(x) sort(x)[floor(length(x)*max_pct)]))
-    }
-  }else{
-    if(max_avg_nn<1 | round(max_avg_nn) != max_avg_nn){
-      stop("max_avg_nn should be a positive integer.")
-    }
-    max_val = mean(apply(dist,1,function(x) sort(x)[max_avg_nn]))
   }
   
   lengthscale = c(0,seq(min_val, max_val, length.out = 10))
