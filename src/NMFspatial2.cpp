@@ -397,12 +397,19 @@ List nmfspatial(arma::mat data, int noSignatures, arma::mat weight, int maxiter 
 }
 
 // [[Rcpp::export]]
-List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::mat weight, int iter = 5000) {
+List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::mat sigma, arma::vec ls_vec, int maxiter = 5000, double tolerance = 1e-8, int error_freq = 10) {
+  
+  int noSignatures = signatures.n_rows;
   
   arma::mat estimate = exposures * signatures;
   arma::mat fraq = data/estimate;
+  arma::mat weight = sigma;
   
-  for(int t = 0; t < iter; t++){
+  double gklOld = error(arma::vectorise(data),arma::vectorise(estimate));
+  double gklNew = 2*gklOld;
+  arma::vec gklvalues(maxiter);
+  
+  for(int t = 0; t < maxiter; t++){
     
     signatures = signatures % (arma::trans(exposures) * fraq);
     signatures = arma::normalise(signatures,1,1);
@@ -413,21 +420,40 @@ List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::m
     fraq = data/estimate;
     
     exposures = exposures % (fraq * arma::trans(signatures));
+    
+    if(t - floor(t/10)*10 == 0){
     arma::colvec exp_sum = sum(exposures,1);
     exposures = exposures.each_col() / exp_sum;
-    exposures = weight * exposures;
+    for(int col = 0; col<noSignatures; col++) {
+      weight = arma::pow(sigma,ls_vec(col));
+      weight = arma::normalise(weight,1,1);
+      exposures.col(col) = weight * exposures.col(col);
+    }
     exposures = exposures.each_col() % exp_sum;
-    
+    }
     exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
     
     estimate = exposures * signatures;
     fraq = data/estimate;
+    
+    gklvalues.at(t) = gklOld;
+    if(t - floor(t/error_freq)*error_freq == 0){
+      gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
+      
+      if (2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance & t > 2*error_freq){
+        Rcout << "Total iterations:";
+        Rcout << t;
+        Rcout << "\n";
+        break;
+      }
+    gklOld = gklNew;
     
   }
   double gkl = error(arma::vectorise(data),arma::vectorise(estimate));
   
   List output = List::create(Named("exposures") = exposures,
                              Named("signatures") = signatures,
-                             Named("gkl") = gkl);
+                             Named("gkl") = gklNew,
+                             Named("gklvalues") = gklvalues);
   return output;
 }

@@ -112,7 +112,7 @@ nn_adj = function(location,celltype,nn = 5,sampleid = NULL){
 #'
 #' @examples
 estimate_lengthscale = function(data, location = NULL, max_avg_nn = 20, max_pct = NULL, dist = NULL, column_ls = FALSE){
-  groups = sample(1:2,nrow(data), replace = T)
+
   
   if(is.null(dist)){
     if(is.null(location)){
@@ -125,12 +125,12 @@ estimate_lengthscale = function(data, location = NULL, max_avg_nn = 20, max_pct 
     if(nrow(dist) != nrow(data) | ncol(dist) != nrow(data)){
       stop("The distance matrix need to have the same number of rows and columns as the data.")
     }
-    dist = dist
+    
     diag(dist) = Inf
   }
   
   dist = sqrt(dist)
-  min_val = min(apply(dist,1,function(x) sort(x)[1]))
+  min_val = min(dist)
   
   if(is.null(max_pct)){
       if(max_avg_nn<1 | round(max_avg_nn) != max_avg_nn){
@@ -144,12 +144,12 @@ estimate_lengthscale = function(data, location = NULL, max_avg_nn = 20, max_pct 
       max_val = mean(apply(dist,1,function(x) sort(x)[floor(length(x)*max_pct)]))
   }
   
-  lengthscale = c(0,seq(min_val, max_val, length.out = 10))
+  lengthscale = seq(min_val, max_val, length.out = 10)
   
   data_norm = data/rowSums(data)
   
   test_error = c()
-  for( j in 1:length(lengthscale)){
+  for(j in 1:length(lengthscale)){
     if(lengthscale[j] > 0){
       sigma = exp(-dist^2/lengthscale[j]^2)
     }else{

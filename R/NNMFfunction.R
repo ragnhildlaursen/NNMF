@@ -126,7 +126,7 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 #' @export
 #'
 #' @examples
-nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 10000, tolerance = 1e-8, initial = 3, smallIter = 100, error_freq = 10,kernel_cutoff = 0.5,normalize = FALSE){
+nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 10000, tolerance = 1e-8, initial = 3, smallIter = 100, error_freq = 10,kernel_cutoff = 0.1,normalize = FALSE, same_ls = TRUE){
     
     if(normalize){
         row_sum = rowSums(data)
@@ -144,8 +144,6 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
         stop("The number of rows in location must match the number of rows in data. \n")
       }
         
-      
-    
       unique_batches = unique(batch)
     
       if(length(unique_batches) == 1){
@@ -154,24 +152,38 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
         if(nrow(data) > 50000){
           stop("There is too many observation to run it in one batch. Use groupondist() to make batches with size 20000 or smaller. \n")
         }
-
+        
         dist = dist_fun(location)
         
-        if(is.null(lengthscale)){
-          lengthscale = mean(apply(sqrt(dist),1,function(x) sort(x)[10]))
+        if(same_ls){
           
-          cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results. \n")
+          if(is.null(lengthscale)){
+            lengthscale = mean(apply(sqrt(dist),1,function(x) sort(x)[10]))
+            
+            cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results. \n")
+          }
+          
+          # calculating covariance
+          sigma = exp(-dist/(lengthscale^2))
+          sigma[sigma < kernel_cutoff] = 0
+          
+          mean_nn = mean(rowSums(sigma > 0) - 1)
+          weight = sigma/rowSums(sigma)
+          
+          out = nmfspatial(data = data, noSignatures = noSignatures, weight = weight, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter)
+        }else{
+          
+          out_start = nmfgen(data = data, noSignatures = noSignatures, maxiter = 100, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
+          
+          est_ls = estimate_lengthscale(out_start$weights, dist = dist, max_avg_nn = 20, column_ls = TRUE)
+          ls_min = apply(est_ls[,-1],2,function(x) est_ls[which.min(x),1])
+          sigma = exp(-dist/(max(ls_min)^2))
+          sigma[sigma < kernel_cutoff] = 0
+          ls_vec = max(ls_min)^2/ls_min^2
+          
+          out = nmftrain(data = data, exposures = out_start$weights, signatures = out_start$signatures, sigma = sigma, ls_vec = ls_vec, maxiter = maxiter, tolerance = tolerance)
+          
         }
-        
-        # calculating covariance
-        sigma = exp(-dist/(lengthscale^2))
-        sigma[sigma < kernel_cutoff] = 0
-        
-        mean_nn = mean(rowSums(sigma > 0) - 1)
-        weight = sigma/rowSums(sigma)
-        
-        out = nmfspatial(data = data, noSignatures = noSignatures, weight = weight, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter)
-
       }else{
         weights = list()
         batch_list = list()
@@ -218,6 +230,12 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
     output$error = out$gkl
     output$errorvalues = out$gklvalues
     output$avg_nn = mean_nn
+    if(same_ls){
+      output$lengthscale = lengthscale
+    }else{
+      output$lengthscale = ls_min
+    }
+    
     return(output)
 }
 
