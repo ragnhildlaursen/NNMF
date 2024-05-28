@@ -34,77 +34,6 @@ topfeatures = function(signatures, feature_names, ntop = 10){
   return(weight_topgene)
 }
 
-#' Determine the lengthscale of your data - testing 10 values from 0 until a determined maximum value
-#'
-#' @param data        A matrix including your data 
-#' @param location    A matrix with the same number of rows as the data
-#' @param max_avg_nn  An integer determining the the average neighbor for the maximum lengthscale tested
-#' @param max_pct     A number between 0 and 1 determining the percentage of datapoints to the maximum lengthscale
-#'
-#' @return A data.frame of the length scales and the corresponding test error.
-#' @export
-#'
-#' @examples
-estimate_lengthscale = function(data, location, max_avg_nn = NULL, max_pct = NULL){
-  groups = sample(1:10,nrow(data), replace = T)
-  
-  dist = dist_fun(location[groups == 1,],location[groups != 1,])
-  dist = sqrt(dist)
-  min_val = mean(apply(dist,1,function(x) sort(x)[2]))
-  if(is.null(max_avg_nn)){
-    if(is.null(max_pct)){
-      max_val = mean(apply(dist,1,function(x) sort(x)[100]))
-    }else{
-      if(max_pct > 1 | max_pct <= 0){
-        stop("max_pct needs to be a value between 0 and 1.")
-      }
-      max_val = mean(apply(dist,1,function(x) sort(x)[floor(length(x)*max_pct)]))
-    }
-  }else{
-    if(max_avg_nn<1 | round(max_avg_nn) != max_avg_nn){
-      stop("max_avg_nn should be a positive integer.")
-    }
-    max_val = mean(apply(dist,1,function(x) sort(x)[max_avg_nn]))
-  }
-  
-  
-  lengthscale = c(0,seq(min_val, max_val, length.out = 10))
-  
-  test_error = c()
-  for( j in 1:length(lengthscale)){
-    if(lengthscale[j] > 0){
-      sigma = exp(-dist/lengthscale[j])
-    }else{
-      sigma = exp(-(dist + 1)*Inf)
-    }
-    
-    sigma[sigma < 0.1] = 0 
-    fit_group = c()
-    
-    for(i in 1){
-      
-      test1_data = data[groups == i, ]  
-      
-      # sigma_t1 = sigma[groups == i,groups != i]
-      sigma_t1 = sigma
-      r_sum = rowSums(sigma_t1)
-      sigma_t1[r_sum == 0,] = 1
-      
-      weights = sigma_t1/rowSums(sigma_t1)
-      
-      estimate = data + 1e-10
-      estimate = estimate/rowSums(estimate)
-      estimate = estimate[groups != i,]
-      fit_group[i] = sum((test1_data/rowSums(test1_data) - weights%*%estimate)^2)
-    }
-    
-    test_error[j] = mean(fit_group)
-  }
-  
-  return(data.frame(lengthscale, test_error))
-}
-
-
 
 #' Determine the average nearest neighbors of certain celltypes
 #'
@@ -166,4 +95,85 @@ nn_adj = function(location,celltype,nn = 5,sampleid = NULL){
   nn_adj_mat = sapply(1:length(levels(celltype)), dist_cells)
   colnames(nn_adj_mat) = paste0(levels(celltype),"-NN")
   return(nn_adj_mat)
+}
+
+
+#' Determine the length scale of your data - testing 10 values from 0 until a determined maximum value
+#'
+#' @param data        A matrix including your data 
+#' @param location    A matrix with the same number of rows as the data
+#' @param max_avg_nn  An integer determining the the average neighbor for the maximum length scale tested 
+#' @param max_pct     A number between 0 and 1 determining the percentage of data points to the maximum length scale 
+#' @param dist        A symmetric distance matrix of the data points. Must have the same number of rows and columns as the number of rows in data. If this is specified the location is ignored. 
+#' @param column_ls   A logical determining whether a length scale should be determined for each column in the data (TRUE) or default = FALSE, where only one length scale is determined.
+#'
+#' @return A data.frame of the length scales and the corresponding test error.
+#' @export
+#'
+#' @examples
+estimate_lengthscale = function(data, location = NULL, max_avg_nn = NULL, max_pct = NULL, dist = NULL, column_ls = FALSE){
+  groups = sample(1:2,nrow(data), replace = T)
+  
+  if(is.null(dist)){
+    if(is.null(location)){
+      stop("You need to specify either location or dist (distance) matrix for your data points. ")
+    }
+    
+    dist = dist_fun(location,location)
+    diag(dist) = Inf
+  }else{
+    if(nrow(dist) != nrow(data) | ncol(dist) != nrow(data)){
+      stop("The distance matrix need to have the same number of rows and columns as the data.")
+    }
+    dist = dist
+    diag(dist) = Inf
+  }
+  
+  dist = sqrt(dist)
+  min_val = min(apply(dist,1,function(x) sort(x)[1]))
+  if(is.null(max_avg_nn)){
+    if(is.null(max_pct)){
+      max_val = mean(apply(dist,1,function(x) sort(x)[20]))
+    }else{
+      if(max_pct > 1 | max_pct <= 0){
+        stop("max_pct needs to be a value between 0 and 1.")
+      }
+      max_val = mean(apply(dist,1,function(x) sort(x)[floor(length(x)*max_pct)]))
+    }
+  }else{
+    if(max_avg_nn<1 | round(max_avg_nn) != max_avg_nn){
+      stop("max_avg_nn should be a positive integer.")
+    }
+    max_val = mean(apply(dist,1,function(x) sort(x)[max_avg_nn]))
+  }
+  
+  lengthscale = c(0,seq(min_val, max_val, length.out = 10))
+  
+  data_norm = data/rowSums(data)
+  
+  test_error = c()
+  for( j in 1:length(lengthscale)){
+    if(lengthscale[j] > 0){
+      sigma = exp(-dist^2/lengthscale[j]^2)
+    }else{
+      sigma = exp(-(dist + 1)*Inf)
+    }
+    
+    sigma[sigma < 0.1] = 0
+    
+    r_sum = rowSums(sigma)
+    sigma[r_sum == 0,] = 1
+    
+    weights = sigma/rowSums(sigma)
+    if(column_ls){
+      fit_group = colMeans((data_norm - weights%*%data_norm)^2)
+      test_error = rbind(test_error,fit_group)
+    }else{
+      fit_group = mean((data_norm - weights%*%data_norm)^2)
+      test_error = c(test_error,fit_group)
+    }
+    
+  }
+  
+  return(data.frame(lengthscale, test_error, row.names=NULL))
 }
