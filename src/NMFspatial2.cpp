@@ -171,7 +171,7 @@ List nmfspatialbatch(arma::mat data, int noSignatures, List weight, List batch, 
     estimate = exposures * signatures;
 
     exposures = exposures % ((data/estimate) * arma::trans(signatures));
-
+    if(t - floor(t/5)*5 == 0){
     for(int b=0; b < nobatches; b++){
       arma::uvec batch_index = batch[b];
       arma::mat w_mat = weight[b];
@@ -184,7 +184,7 @@ List nmfspatialbatch(arma::mat data, int noSignatures, List weight, List batch, 
 
       exposures.rows(batch_index) = exposures_batch;
     }
-    
+    }
     exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
 
     estimate = exposures * signatures;
@@ -266,12 +266,9 @@ List nmfspatialbatch2(arma::mat data, int noSignatures, List weight, List batch,
     estimate.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
 
     exposures = exposures % (fraq * arma::trans(signatures));
-    if(exposures.has_nan()){
-          Rcout << t << "Nan values in exposure \n";
-          break;
-      }
 
-    exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    
+    if(t - floor(t/5)*5 == 0){
     for(int b=0; b < nobatches; b++){
       arma::uvec batch_index = batch[b];
       arma::mat w_mat = weight[b];
@@ -283,13 +280,11 @@ List nmfspatialbatch2(arma::mat data, int noSignatures, List weight, List batch,
       exposures_batch = w_mat * exposures_batch;
       
       exposures_batch = exposures_batch.each_col() % exp_sum;
-      if(exposures_batch.has_nan()){
-          Rcout << t << "Nan values in batch \n";
-          break;
-      }
+
       exposures.rows(batch_index) = exposures_batch;
     }
-    
+    }
+    exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
     estimate = exposures * signatures;
     fraq = data/estimate;
     estimate.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
@@ -362,13 +357,13 @@ List nmfspatial(arma::mat data, int noSignatures, arma::mat weight, int maxiter 
     
     estimate = exposures * signatures;
     fraq = data/estimate;
-    
+    if(t - floor(t/5)*5 == 0){
     exposures = exposures % (fraq * arma::trans(signatures));
     arma::colvec exp_sum = sum(exposures,1);
     exposures = exposures.each_col() / exp_sum;
     exposures = weight * exposures;
     exposures = exposures.each_col() % exp_sum;
-    
+    }
     exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
     
     estimate = exposures * signatures;
@@ -421,7 +416,7 @@ List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::m
     
     exposures = exposures % (fraq * arma::trans(signatures));
     
-    if(t - floor(t/10)*10 == 0){
+    if(t - floor(t/5)*5 == 0){
     arma::colvec exp_sum = sum(exposures,1);
     exposures = exposures.each_col() / exp_sum;
     for(int col = 0; col<noSignatures; col++) {
@@ -449,7 +444,6 @@ List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::m
     gklOld = gklNew;
     
   }
-  double gkl = error(arma::vectorise(data),arma::vectorise(estimate));
   
   List output = List::create(Named("exposures") = exposures,
                              Named("signatures") = signatures,
