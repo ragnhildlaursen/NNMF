@@ -83,17 +83,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // nmftrain
-List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::mat weight, int iter);
-RcppExport SEXP _NNMF_nmftrain(SEXP dataSEXP, SEXP exposuresSEXP, SEXP signaturesSEXP, SEXP weightSEXP, SEXP iterSEXP) {
+List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::mat sigma, arma::vec ls_vec, int maxiter, double tolerance, int error_freq);
+RcppExport SEXP _NNMF_nmftrain(SEXP dataSEXP, SEXP exposuresSEXP, SEXP signaturesSEXP, SEXP sigmaSEXP, SEXP ls_vecSEXP, SEXP maxiterSEXP, SEXP toleranceSEXP, SEXP error_freqSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type exposures(exposuresSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type signatures(signaturesSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type weight(weightSEXP);
-    Rcpp::traits::input_parameter< int >::type iter(iterSEXP);
-    rcpp_result_gen = Rcpp::wrap(nmftrain(data, exposures, signatures, weight, iter));
+    Rcpp::traits::input_parameter< arma::mat >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type ls_vec(ls_vecSEXP);
+    Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
+    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    Rcpp::traits::input_parameter< int >::type error_freq(error_freqSEXP);
+    rcpp_result_gen = Rcpp::wrap(nmftrain(data, exposures, signatures, sigma, ls_vec, maxiter, tolerance, error_freq));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -103,7 +106,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_NNMF_nmfspatialbatch", (DL_FUNC) &_NNMF_nmfspatialbatch, 9},
     {"_NNMF_nmfspatialbatch2", (DL_FUNC) &_NNMF_nmfspatialbatch2, 7},
     {"_NNMF_nmfspatial", (DL_FUNC) &_NNMF_nmfspatial, 8},
-    {"_NNMF_nmftrain", (DL_FUNC) &_NNMF_nmftrain, 5},
+    {"_NNMF_nmftrain", (DL_FUNC) &_NNMF_nmftrain, 8},
     {NULL, NULL, 0}
 };
 

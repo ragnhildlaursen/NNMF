@@ -172,17 +172,20 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
           
           out = nmfspatial(data = data, noSignatures = noSignatures, weight = weight, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter)
         }else{
-          
+          # estimating different length scales
           out_start = nmfgen(data = data, noSignatures = noSignatures, maxiter = 100, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
-          
-          est_ls = estimate_lengthscale(out_start$weights, dist = dist, max_avg_nn = 20, column_ls = TRUE)
+
+          est_ls = estimate_lengthscale(data = out_start$exposures, dist = dist, max_avg_nn = 25, column_ls = TRUE)
           ls_min = apply(est_ls[,-1],2,function(x) est_ls[which.min(x),1])
+          
           sigma = exp(-dist/(max(ls_min)^2))
           sigma[sigma < kernel_cutoff] = 0
           ls_vec = max(ls_min)^2/ls_min^2
+          ls_vec[ls_min == max(est_ls[,1])] = 0
           
-          out = nmftrain(data = data, exposures = out_start$weights, signatures = out_start$signatures, sigma = sigma, ls_vec = ls_vec, maxiter = maxiter, tolerance = tolerance)
+          out = nmftrain(data = data, exposures = out_start$exposures, signatures = out_start$signatures, sigma = sigma, ls_vec = ls_vec, maxiter = maxiter, tolerance = tolerance)
           
+          ls_min[ls_min == max(est_ls[,1])] = 0
         }
       }else{
         weights = list()

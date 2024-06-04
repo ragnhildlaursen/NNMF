@@ -15,8 +15,9 @@ nnmf(
   initial = 3,
   smallIter = 100,
   error_freq = 10,
-  kernel_cutoff = 0.5,
-  normalize = FALSE
+  kernel_cutoff = 0.1,
+  normalize = FALSE,
+  same_ls = TRUE
 )
 }
 \arguments{

@@ -17,7 +17,7 @@ nmfspatial <- function(data, noSignatures, weight, maxiter = 10000L, tolerance =
     .Call(`_NNMF_nmfspatial`, data, noSignatures, weight, maxiter, tolerance, initial, smallIter, error_freq)
 }
 
-nmftrain <- function(data, exposures, signatures, weight, iter = 5000L) {
-    .Call(`_NNMF_nmftrain`, data, exposures, signatures, weight, iter)
+nmftrain <- function(data, exposures, signatures, sigma, ls_vec, maxiter = 5000L, tolerance = 1e-8, error_freq = 10L) {
+    .Call(`_NNMF_nmftrain`, data, exposures, signatures, sigma, ls_vec, maxiter, tolerance, error_freq)
 }
 

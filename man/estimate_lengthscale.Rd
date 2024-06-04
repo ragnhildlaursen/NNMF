@@ -2,22 +2,33 @@
 % Please edit documentation in R/utils.R
 \name{estimate_lengthscale}
 \alias{estimate_lengthscale}
-\title{Determine the lengthscale of your data - testing 10 values from 0 until a determined maximum value}
+\title{Determine the length scale of your data - testing 10 values from 0 until a determined maximum value}
 \usage{
-estimate_lengthscale(data, location, max_avg_nn = NULL, max_pct = NULL)
+estimate_lengthscale(
+  data,
+  location = NULL,
+  max_avg_nn = 20,
+  max_pct = NULL,
+  dist = NULL,
+  column_ls = FALSE
+)
 }
 \arguments{
 \item{data}{A matrix including your data}
 
 \item{location}{A matrix with the same number of rows as the data}
 
-\item{max_avg_nn}{An integer determining the the average neighbor for the maximum lengthscale tested}
+\item{max_avg_nn}{An integer determining the the average neighbor for the maximum length scale tested. The default is 20.}
 
-\item{max_pct}{A number between 0 and 1 determining the percentage of datapoints to the maximum lengthscale}
+\item{max_pct}{A number between 0 and 1 determining the percentage of data points to the maximum length scale}
+
+\item{dist}{A symmetric distance matrix of the data points. Must have the same number of rows and columns as the number of rows in data. If this is specified the location is ignored.}
+
+\item{column_ls}{A logical determining whether a length scale should be determined for each column in the data (TRUE) or default = FALSE, where only one length scale is determined.}
 }
 \value{
 A data.frame of the length scales and the corresponding test error.
 }
 \description{
-Determine the lengthscale of your data - testing 10 values from 0 until a determined maximum value
+Determine the length scale of your data - testing 10 values from 0 until a determined maximum value
 }

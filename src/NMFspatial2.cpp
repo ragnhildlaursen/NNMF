@@ -111,7 +111,7 @@ List nmfgen(arma::mat data, int noSignatures, int maxiter = 10000, double tolera
     if(t - floor(t/error_freq)*error_freq == 0){
       gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
       
-      if (2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance & t > 10){
+      if ((2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance) & (t > error_freq)){
         Rcout << "Total iterations:";
         Rcout << t;
         Rcout << "\n";
@@ -200,7 +200,7 @@ List nmfspatialbatch(arma::mat data, int noSignatures, List weight, List batch, 
         Rcout << gklNew;
         Rcout << "\n";
       }
-      if (2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance & t > 2*error_freq){
+      if ((2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance) & (t > error_freq)){
         Rcout << "Total iterations:";
         Rcout << t;
         Rcout << "\n";
@@ -300,7 +300,7 @@ List nmfspatialbatch2(arma::mat data, int noSignatures, List weight, List batch,
       Rcout << gklNew;
       Rcout << "\n";
       }
-      if (2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance & t > 2*error_freq ){
+      if ((2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance) & (t > error_freq)){
         Rcout << "Total iterations:";
         Rcout << t;
         Rcout << "\n";
@@ -373,7 +373,7 @@ List nmfspatial(arma::mat data, int noSignatures, arma::mat weight, int maxiter 
     if(t - floor(t/error_freq)*error_freq == 0){
     gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
     
-    if (2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance & t > 2*error_freq){
+    if ((2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance) & (t > error_freq)){
       Rcout << "Total iterations:";
       Rcout << t;
       Rcout << "\n";
@@ -420,9 +420,11 @@ List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::m
     arma::colvec exp_sum = sum(exposures,1);
     exposures = exposures.each_col() / exp_sum;
     for(int col = 0; col<noSignatures; col++) {
+      if(ls_vec(col) > 0){
       weight = arma::pow(sigma,ls_vec(col));
       weight = arma::normalise(weight,1,1);
       exposures.col(col) = weight * exposures.col(col);
+      }
     }
     exposures = exposures.each_col() % exp_sum;
     }
@@ -435,14 +437,14 @@ List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::m
     if(t - floor(t/error_freq)*error_freq == 0){
       gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
       
-      if (2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance & t > 2*error_freq){
+      if ((2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance) & (t > error_freq)){
         Rcout << "Total iterations:";
         Rcout << t;
         Rcout << "\n";
         break;
       }
     gklOld = gklNew;
-    
+    }
   }
   
   List output = List::create(Named("exposures") = exposures,
