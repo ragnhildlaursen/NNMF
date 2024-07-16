@@ -171,7 +171,7 @@ List nmfspatialbatch(arma::mat data, int noSignatures, List weight, List batch, 
     estimate = exposures * signatures;
 
     exposures = exposures % ((data/estimate) * arma::trans(signatures));
-    if(t - floor(t/5)*5 == 0){
+    if(t - floor(t/2)*2 == 0){
     for(int b=0; b < nobatches; b++){
       arma::uvec batch_index = batch[b];
       arma::mat w_mat = weight[b];
@@ -268,7 +268,7 @@ List nmfspatialbatch2(arma::mat data, int noSignatures, List weight, List batch,
     exposures = exposures % (fraq * arma::trans(signatures));
 
     
-    if(t - floor(t/5)*5 == 0){
+    if(t - floor(t/2)*2 == 0){
     for(int b=0; b < nobatches; b++){
       arma::uvec batch_index = batch[b];
       arma::mat w_mat = weight[b];
@@ -357,7 +357,7 @@ List nmfspatial(arma::mat data, int noSignatures, arma::mat weight, int maxiter 
     
     estimate = exposures * signatures;
     fraq = data/estimate;
-    if(t - floor(t/5)*5 == 0){
+    if(t - floor(t/2)*2 == 0){
     exposures = exposures % (fraq * arma::trans(signatures));
     arma::colvec exp_sum = sum(exposures,1);
     exposures = exposures.each_col() / exp_sum;
@@ -416,7 +416,7 @@ List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::m
     
     exposures = exposures % (fraq * arma::trans(signatures));
     
-    if(t - floor(t/5)*5 == 0){
+    if(t - floor(t/2)*2 == 0){
     arma::colvec exp_sum = sum(exposures,1);
     exposures = exposures.each_col() / exp_sum;
     for(int col = 0; col<noSignatures; col++) {

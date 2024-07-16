@@ -158,7 +158,10 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
         if(same_ls){
           
           if(is.null(lengthscale)){
-            lengthscale = mean(apply(sqrt(dist),1,function(x) sort(x)[10]))
+            # est_ls = estimate_lengthscale(data = data, dist = dist, max_avg_nn = 25, column_ls = FALSE)
+            # lengthscale = est_ls[which.min(est_ls[,2]),1]
+            
+            lengthscale = mean(apply(sqrt(dist),1,function(x) sort(x)[15]))
             
             cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results. \n")
           }
@@ -200,7 +203,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
             dist = dist_fun(X)
             
             if(is.null(lengthscale)){
-              lengthscale = mean(apply(sqrt(dist),1,function(x) sort(x)[10]))
+              lengthscale = mean(apply(sqrt(dist),1,function(x) sort(x)[15]))
               
               cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results. \n")
             } 
@@ -238,6 +241,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
     }else{
       output$lengthscale = ls_min
     }
+    output$batch = batch
     
     return(output)
 }
