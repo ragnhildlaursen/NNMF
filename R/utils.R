@@ -16,11 +16,13 @@ topfeatures = function(signatures, feature_names, ntop = 10){
   dat_new=NULL
   for(ii in 1:nrow(dat)){
     rr=dat[ii,]
-    m1=max(rr)
-    m2=max(rr[-which(rr==m1)])
-    mm=rep(m1, length(rr))
-    mm[which(rr==m1)]=m2
-    ns=rr*log((rr+1e-10)/(mm+1e-10))
+    m1 = which.max(rr)
+    m2 = which.max(rr[-m1])
+    
+    mm = rep(rr[m1], length(rr))
+    mm[m1] = rr[m2]
+    
+    ns=rr*log(1 + (rr+1e-10)/(mm+1e-10))
     dat_new=rbind(dat_new, ns)
   }
   
