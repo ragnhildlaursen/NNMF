@@ -191,6 +191,11 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
           ls_min[ls_min == max(est_ls[,1])] = 0
         }
       }else{
+        
+        if(nrow(data) != length(batch)){
+          stop("The length of batch must match the number of rows in data. \n")
+        }
+        
         weights = list()
         batch_list = list()
         first_batch = TRUE

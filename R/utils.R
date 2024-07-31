@@ -22,7 +22,7 @@ topfeatures = function(signatures, feature_names, ntop = 10){
     mm = rep(rr[m1], length(rr))
     mm[m1] = rr[m2]
     
-    ns=rr*log(1 + (rr+1e-10)/(mm+1e-10))
+    ns=rr*log(1 + rr/(mm+1e-10))
     dat_new=rbind(dat_new, ns)
   }
   
