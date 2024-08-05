@@ -44,10 +44,9 @@ topfeatures = function(signatures, feature_names, ntop = 10){
 #' @param nn        An integer determining the number of nearest neighbors
 #' @param sampleid  A vector to split the location into different samples. Needs to be the same length as the number of rows in the location matrix or NULL (default) if all the observations come from the same sample. 
 #'
-#' @return
+#' @return An adjencency matrix of the nearest neighboring celltypes
 #' @export
 #'
-#' @examples
 nn_adj = function(location,celltype,nn = 5,sampleid = NULL){
   sum_cell = table(celltype_total)
   
@@ -112,7 +111,6 @@ nn_adj = function(location,celltype,nn = 5,sampleid = NULL){
 #' @return A data.frame of the length scales and the corresponding test error.
 #' @export
 #'
-#' @examples
 estimate_lengthscale = function(data, location = NULL, max_avg_nn = 20, max_pct = NULL, dist = NULL, column_ls = FALSE){
 
   
@@ -175,4 +173,64 @@ estimate_lengthscale = function(data, location = NULL, max_avg_nn = 20, max_pct 
   }
   
   return(data.frame(lengthscale, test_error, row.names=NULL))
+}
+
+#' Construct new dataset of spatial genes
+#'
+#' @param data        A matrix including your data 
+#' @param lengthscale A double determining the lengthscale. Optimal is to choose the one found from estimate_lengthscale.
+#' @param location    A matrix with the same number of rows as the data
+#' @param dist        A symmetric distance matrix of the data points. Must have the same number of rows and columns as the number of rows in data. If this is specified the location is ignored. 
+#' @param nfeatures   An integer determining the number of retrieved spatially variable genes. Default is half of the number of features in the original data
+#'
+#' @return A list of a new data set containing the most spatially variable genes and the indexes from the original data that is included.
+#' @export
+#'
+spatial_data = function(data, lengthscale, location = NULL, dist = NULL, nfeatures = floor(ncol(data)/2)){
+  
+  
+  if(is.null(dist)){
+    if(is.null(location)){
+      stop("You need to specify either location or dist (distance) matrix for your data points. ")
+    }
+    
+    dist = dist_fun(location,location)
+    diag(dist) = Inf
+  }else{
+    if(nrow(dist) != nrow(data) | ncol(dist) != nrow(data)){
+      stop("The distance matrix need to have the same number of rows and columns as the data.")
+    }
+    
+    diag(dist) = Inf
+  }
+  
+  dist = sqrt(dist)
+  
+  
+  lengthscale = seq(min_val, max_val, length.out = 10)
+  
+  data_norm = data/rowSums(data)
+  
+  test_error = c()
+
+  sigma = exp(-dist^2/lengthscale^2)
+ 
+    
+  sigma[sigma < 0.1] = 0
+    
+  r_sum = rowSums(sigma)
+  sigma[r_sum == 0,] = 1
+    
+  weights = sigma/rowSums(sigma)
+
+  fit_group = colMeans((data_norm - weights%*%data_norm)^2)/colMeans(data_norm)
+  idx = order(fit_group)
+  
+  data_new = data[,idx[1:nfeatures]]
+  
+  output = list()
+  output$data_reduced = data_new
+  output$original_index = idx[1:nfeatures]
+  
+  return(output)
 }

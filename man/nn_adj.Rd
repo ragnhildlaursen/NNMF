@@ -15,6 +15,9 @@ nn_adj(location, celltype, nn = 5, sampleid = NULL)
 
 \item{sampleid}{A vector to split the location into different samples. Needs to be the same length as the number of rows in the location matrix or NULL (default) if all the observations come from the same sample.}
 }
+\value{
+An adjencency matrix of the nearest neighboring celltypes
+}
 \description{
 Determine the average nearest neighbors of certain celltypes
 }

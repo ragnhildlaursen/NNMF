@@ -10,13 +10,13 @@ nnmf(
   location = NULL,
   lengthscale = NULL,
   batch = 1,
-  maxiter = 10000,
+  maxiter = 1000,
   tolerance = 1e-08,
   initial = 3,
-  smallIter = 100,
+  smallIter = 50,
   error_freq = 10,
   kernel_cutoff = 0.1,
-  normalize = FALSE,
+  normalize = TRUE,
   same_ls = TRUE
 )
 }
