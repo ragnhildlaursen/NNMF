@@ -206,12 +206,7 @@ spatial_data = function(data, lengthscale, location = NULL, dist = NULL, nfeatur
   
   dist = sqrt(dist)
   
-  
-  lengthscale = seq(min_val, max_val, length.out = 10)
-  
   data_norm = data/rowSums(data)
-  
-  test_error = c()
 
   sigma = exp(-dist^2/lengthscale^2)
  
