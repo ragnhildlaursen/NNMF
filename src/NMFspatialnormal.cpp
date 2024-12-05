@@ -7,15 +7,11 @@
 using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
-double error(arma::colvec y, arma::colvec mu) {
+double error2(arma::colvec y, arma::colvec mu) {
   int ySize = y.size();
   double sum = 0;
   for (int i=0; i<ySize; i++) {
-    if (y[i] <= 0 || mu[i] <= 0) {
-      sum += mu[i];
-    } else {
-      sum += y[i] * (log(y[i]) - log(mu[i])) - y[i] + mu[i];
-    }
+      sum += pow(y[i] - mu[i],2);
   }
   return sum;
 }
@@ -29,25 +25,26 @@ std::tuple<arma::mat, arma::mat, double> nmf1(arma::mat data, int noSignatures, 
   arma::mat signatures(noSignatures, mutTypes, arma::fill::randu);
   
   arma::mat estimate = exposures * signatures;
-  arma::mat fraq = data/estimate;
+  arma::mat fraqsig = (arma::trans(exposures) * data)/(arma::trans(exposures) * estimate);
+  arma::mat fraqexp = (data * arma::trans(signatures))/(estimate * arma::trans(signatures));
   
   
   for(int t = 0; t < iter; t++){
     
-    signatures = signatures % (arma::trans(exposures) * fraq);
+    signatures = signatures % fraqsig;
     signatures = arma::normalise(signatures,1,1);
     
     signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
 
     estimate = exposures * signatures;
-    fraq = data/estimate;
+    fraqexp = (data * arma::trans(signatures))/(estimate * arma::trans(signatures));
 
-    exposures = exposures % (fraq * arma::trans(signatures));
+    exposures = exposures % fraqexp;
 
     exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
     
     estimate = exposures * signatures;
-    fraq = data/estimate;
+    fraqsig = (arma::trans(exposures) * data)/(arma::trans(exposures) * estimate);
     
     if(t - floor(t/5)*5 == 0){
       for(int r = 0; r<noSignatures; r++) {

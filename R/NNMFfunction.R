@@ -127,8 +127,16 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 #'
 #' @examples
 nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 1000, tolerance = 1e-10, initial = 3, smallIter = 50, error_freq = 10,kernel_cutoff = 0.1,normalize = TRUE, same_ls = TRUE){
+  
+  if(sum(colSums(data) == 0) > 0){
+    stop("Remove columns in the data that only contain zeroes. \n")
+  }  
+  
+  if(sum(rowSums(data) == 0) > 0){
+    stop("Remove rows in the data that only contain zeroes. \n")
+  }  
     
-    if(normalize){
+  if(normalize){
         row_sum = rowSums(data)
         data = data/row_sum*10000
     }
