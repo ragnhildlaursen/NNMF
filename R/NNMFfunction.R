@@ -148,7 +148,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
       out = nmfgen(data = data, noSignatures = noSignatures, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
     }else{
       
-      if(nrow(data) != nrow(location)){
+    if(nrow(data) != nrow(location)){
         stop("The number of rows in location must match the number of rows in data. \n")
       }
         
