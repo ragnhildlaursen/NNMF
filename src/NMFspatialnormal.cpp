@@ -6,7 +6,7 @@
 
 using namespace Rcpp;
 
-double error(arma::colvec y, arma::colvec mu) {
+double error_norm(arma::colvec y, arma::colvec mu) {
   int ySize = y.size();
   double sum = 0;
   for (int i=0; i<ySize; i++) {
@@ -15,7 +15,7 @@ double error(arma::colvec y, arma::colvec mu) {
   return sum;
 }
 
-std::tuple<arma::mat, arma::mat, double> nmf1(arma::mat data, int noSignatures, int iter = 5000) {
+std::tuple<arma::mat, arma::mat, double> nmf1_norm(arma::mat data, int noSignatures, int iter = 5000) {
   int genomes = data.n_rows;
   int mutTypes = data.n_cols;
 
@@ -57,20 +57,20 @@ std::tuple<arma::mat, arma::mat, double> nmf1(arma::mat data, int noSignatures, 
     }
     
   }
-  double gkl = error(arma::vectorise(data),arma::vectorise(estimate));
+  double gkl = error_norm(arma::vectorise(data),arma::vectorise(estimate));
   
   return {exposures, signatures, gkl};
 }
 
 // [[Rcpp::export]]
 List nmfgen_norm(arma::mat data, int noSignatures, int maxiter = 10000, double tolerance = 1e-8, int initial = 10, int smallIter = 100, int error_freq = 10) {
-  auto res = nmf1(data, noSignatures, smallIter);
+  auto res = nmf1_norm(data, noSignatures, smallIter);
   auto exposures = std::get<0>(res);
   auto signatures = std::get<1>(res);
   auto gklValue = std::get<2>(res);
   
   for(int i = 1; i < initial; i++){
-    auto res = nmf1(data, noSignatures, smallIter);
+    auto res = nmf1_norm(data, noSignatures, smallIter);
     auto gklNew = std::get<2>(res);
     
     if(gklNew < gklValue){
@@ -83,14 +83,14 @@ List nmfgen_norm(arma::mat data, int noSignatures, int maxiter = 10000, double t
   
   arma::mat estimate = exposures * signatures;
   
-  double gklOld = error(arma::vectorise(data),arma::vectorise(estimate));
+  double gklOld = error_norm(arma::vectorise(data),arma::vectorise(estimate));
   double gklNew = 2*gklOld;
   arma::vec gklvalues(maxiter);
   arma::mat fraqsig = (arma::trans(exposures) * data)/(arma::trans(exposures) * estimate);
   arma::mat fraqexp = (data * arma::trans(signatures))/(estimate * arma::trans(signatures));
   
   
-  for(int t = 0; t < iter; t++){
+  for(int t = 0; t < maxiter; t++){
     
     signatures = signatures % fraqsig;
     signatures = arma::normalise(signatures,1,1);
@@ -110,7 +110,7 @@ List nmfgen_norm(arma::mat data, int noSignatures, int maxiter = 10000, double t
     gklvalues.at(t) = gklOld;
     
     if(t - floor(t/error_freq)*error_freq == 0){
-      gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
+      gklNew = error_norm(arma::vectorise(data),arma::vectorise(estimate));
       
       if ((2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance) & (t > error_freq)){
         Rcout << "Total iterations:";
@@ -123,7 +123,7 @@ List nmfgen_norm(arma::mat data, int noSignatures, int maxiter = 10000, double t
     
   }
   
-  gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
+  gklNew = error_norm(arma::vectorise(data),arma::vectorise(estimate));
   
   List output = List::create(Named("exposures") = exposures,
                              Named("signatures") = signatures,
@@ -139,13 +139,13 @@ List nmfspatialbatch_norm(arma::mat data, int noSignatures, List weight, List ba
   
   int nobatches = batch.size();
   
-  auto res = nmf1(data, noSignatures, smallIter);
+  auto res = nmf1_norm(data, noSignatures, smallIter);
   auto exposures = std::get<0>(res);
   auto signatures = std::get<1>(res);
   auto gklValue = std::get<2>(res);
   
   for(int i = 0; i < initial; i++){
-    auto res = nmf1(data, noSignatures, smallIter);
+    auto res = nmf1_norm(data, noSignatures, smallIter);
     auto gklNew = std::get<2>(res);
     
     if(gklNew < gklValue){
@@ -158,7 +158,7 @@ List nmfspatialbatch_norm(arma::mat data, int noSignatures, List weight, List ba
   
   arma::mat estimate = exposures * signatures;
   
-  double gklOld = error(arma::vectorise(data),arma::vectorise(estimate));
+  double gklOld = error_norm(arma::vectorise(data),arma::vectorise(estimate));
   double gklNew = 2*gklOld;
   arma::vec gklvalues(maxiter);
   
@@ -166,7 +166,7 @@ List nmfspatialbatch_norm(arma::mat data, int noSignatures, List weight, List ba
   arma::mat fraqexp = (data * arma::trans(signatures))/(estimate * arma::trans(signatures));
   
   
-  for(int t = 0; t < iter; t++){
+  for(int t = 0; t < maxiter; t++){
     
     signatures = signatures % fraqsig;
     
@@ -199,7 +199,7 @@ List nmfspatialbatch_norm(arma::mat data, int noSignatures, List weight, List ba
     gklvalues.at(t) = gklOld;
     
     if(t - floor(t/error_freq)*error_freq == 0){
-      gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
+      gklNew = error_norm(arma::vectorise(data),arma::vectorise(estimate));
       if(t - floor(t/100)*100 == 0){
         Rcout << "Total iterations:";
         Rcout << t;
@@ -219,7 +219,7 @@ List nmfspatialbatch_norm(arma::mat data, int noSignatures, List weight, List ba
     
   }
   
-  gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
+  gklNew = error_norm(arma::vectorise(data),arma::vectorise(estimate));
   
   List output = List::create(Named("exposures") = exposures,
                              Named("signatures") = signatures,
@@ -245,14 +245,14 @@ List nmfspatialbatch2_norm(arma::mat data, int noSignatures, List weight, List b
 
   arma::mat fraq = data/estimate;
 
-  double gklOld = error(arma::vectorise(data),arma::vectorise(estimate));
+  double gklOld = error_norm(arma::vectorise(data),arma::vectorise(estimate));
   double gklNew = 2*gklOld;
   arma::vec gklvalues(maxiter);
   arma::mat fraqsig = (arma::trans(exposures) * data)/(arma::trans(exposures) * estimate);
   arma::mat fraqexp = (data * arma::trans(signatures))/(estimate * arma::trans(signatures));
   
   
-  for(int t = 0; t < iter; t++){
+  for(int t = 0; t < maxiter; t++){
     
     signatures = signatures % fraqsig;
     
@@ -287,7 +287,7 @@ List nmfspatialbatch2_norm(arma::mat data, int noSignatures, List weight, List b
     gklvalues.at(t) = gklOld;
     
     if(t - floor(t/error_freq)*error_freq == 0){
-      gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
+      gklNew = error_norm(arma::vectorise(data),arma::vectorise(estimate));
       if(t - floor(t/100)*100 == 0){
       Rcout << "Total iterations:";
       Rcout << t;
@@ -306,7 +306,7 @@ List nmfspatialbatch2_norm(arma::mat data, int noSignatures, List weight, List b
     
   }
   
-  gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
+  gklNew = error_norm(arma::vectorise(data),arma::vectorise(estimate));
   
   List output = List::create(Named("exposures") = exposures,
                              Named("signatures") = signatures,
@@ -319,13 +319,13 @@ List nmfspatialbatch2_norm(arma::mat data, int noSignatures, List weight, List b
 // [[Rcpp::export]]
 List nmfspatial_norm(arma::mat data, int noSignatures, arma::mat weight, int maxiter = 10000, double tolerance = 1e-8, int initial = 5, int smallIter = 100, int error_freq = 10) {
   
-  auto res = nmf1(data, noSignatures, smallIter);
+  auto res = nmf1_norm(data, noSignatures, smallIter);
   auto exposures = std::get<0>(res);
   auto signatures = std::get<1>(res);
   auto gklValue = std::get<2>(res);
   
   for(int i = 1; i < initial; i++){
-    auto res = nmf1(data, noSignatures, smallIter);
+    auto res = nmf1_norm(data, noSignatures, smallIter);
     auto gklNew = std::get<2>(res);
     
     if(gklNew < gklValue){
@@ -338,14 +338,14 @@ List nmfspatial_norm(arma::mat data, int noSignatures, arma::mat weight, int max
   
   arma::mat estimate = exposures * signatures;
   
-  double gklOld = error(arma::vectorise(data),arma::vectorise(estimate));
+  double gklOld = error_norm(arma::vectorise(data),arma::vectorise(estimate));
   double gklNew = 2*gklOld;
   arma::vec gklvalues(maxiter);
   arma::mat fraqsig = (arma::trans(exposures) * data)/(arma::trans(exposures) * estimate);
   arma::mat fraqexp = (data * arma::trans(signatures))/(estimate * arma::trans(signatures));
   
   
-  for(int t = 0; t < iter; t++){
+  for(int t = 0; t < maxiter; t++){
     
     signatures = signatures % fraqsig;
     
@@ -369,7 +369,7 @@ List nmfspatial_norm(arma::mat data, int noSignatures, arma::mat weight, int max
     
     gklvalues.at(t) = gklOld;
     if(t - floor(t/error_freq)*error_freq == 0){
-    gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
+    gklNew = error_norm(arma::vectorise(data),arma::vectorise(estimate));
     
     if ((2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance) & (t > error_freq)){
       Rcout << "Total iterations:";
@@ -397,14 +397,14 @@ List nmftrain_norm(arma::mat data, arma::mat exposures, arma::mat signatures, ar
   arma::mat estimate = exposures * signatures;
   arma::mat weight = sigma;
   
-  double gklOld = error(arma::vectorise(data),arma::vectorise(estimate));
+  double gklOld = error_norm(arma::vectorise(data),arma::vectorise(estimate));
   double gklNew = 2*gklOld;
   arma::vec gklvalues(maxiter);
   arma::mat fraqsig = (arma::trans(exposures) * data)/(arma::trans(exposures) * estimate);
   arma::mat fraqexp = (data * arma::trans(signatures))/(estimate * arma::trans(signatures));
   
   
-  for(int t = 0; t < iter; t++){
+  for(int t = 0; t < maxiter; t++){
     
     signatures = signatures % fraqsig;
     
@@ -434,7 +434,7 @@ List nmftrain_norm(arma::mat data, arma::mat exposures, arma::mat signatures, ar
     
     gklvalues.at(t) = gklOld;
     if(t - floor(t/error_freq)*error_freq == 0){
-      gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
+      gklNew = error_norm(arma::vectorise(data),arma::vectorise(estimate));
       
       if ((2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance) & (t > error_freq)){
         Rcout << "Total iterations:";
