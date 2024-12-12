@@ -125,22 +125,45 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 #'  }
 #' @export
 #'
-#' @examples
-nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 1000, tolerance = 1e-10, initial = 3, smallIter = 50, error_freq = 10,kernel_cutoff = 0.1,normalize = TRUE, same_ls = TRUE){
+nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 1000, tolerance = 1e-10, initial = 3, smallIter = 50, error_freq = 10,kernel_cutoff = 0.1,normalize = TRUE, same_ls = TRUE, distribution = "poisson", alpha = NULL){
+
+  if(sum(colSums(data) == 0) > 0){
+    stop("Remove columns in the data that only contain zeroes. \n")
+  }  
+  
+  if(sum(rowSums(data) == 0) > 0){
+    stop("Remove rows in the data that only contain zeroes. \n")
+  }  
     
-    if(normalize){
+  if(normalize){
         row_sum = rowSums(data)
         data = data/row_sum*10000
-    }
+  }
+  
+  if(!(distribution == "poisson" | distribution == "nb" | distribution == "normal")){
+    stop("The distribution needs to be specified to either poisson, nb or normal.")
+  }
+  
+  if(distribution == "nb" && (is.null(alpha) | alpha <= 0)){
+    stop("alpha need to be specified to a positive number when assuming negative binomial")
+  }
     
     mean_nn = 0
     
     if(is.null(location)){
       cat("Running regular NMF, as no locations were specified. \n")
-      out = nmfgen(data = data, noSignatures = noSignatures, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
+      if(distribution == 'poisson'){
+        out = nmfgen(data = data, noSignatures = noSignatures, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
+      }
+      if(distribution == 'normal'){
+        out = nmfgen_norm(data = data, noSignatures = noSignatures, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
+      }
+      if(distribution == 'nb'){
+        out = nmfgen_nb(data = data, noSignatures = noSignatures, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq, alpha = alpha)
+      }
     }else{
       
-      if(nrow(data) != nrow(location)){
+    if(nrow(data) != nrow(location)){
         stop("The number of rows in location must match the number of rows in data. \n")
       }
         
@@ -172,8 +195,15 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
           
           mean_nn = mean(rowSums(sigma > 0) - 1)
           weight = sigma/rowSums(sigma)
-          
+          if(distribution == 'poisson'){
           out = nmfspatial(data = data, noSignatures = noSignatures, weight = weight, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter)
+          }
+          if(distribution == 'normal'){
+            out = nmfspatial_norm(data = data, noSignatures = noSignatures, weight = weight, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter)
+          }
+          if(distribution == 'nb'){
+            out = nmfspatial_nb(data = data, noSignatures = noSignatures, weight = weight, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, alpha = alpha)
+          }
         }else{
           # estimating different length scales
           out_start = nmfgen(data = data, noSignatures = noSignatures, maxiter = 100, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
@@ -228,10 +258,26 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
         }
 
         if(initial == 1){
+          if(distribution == 'poisson'){
             out = nmfspatialbatch2(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, error_freq = error_freq)
+          }
+          if(distribution == 'normal'){
+            out = nmfspatialbatch2_norm(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, error_freq = error_freq)
+          }
+          if(distribution == 'nb'){
+            out = nmfspatialbatch2_nb(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, error_freq = error_freq, alpha = alpha)
+          }
         }else{
+          if(distribution == 'poisson'){
             out = nmfspatialbatch(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
-        }
+          }
+          if(distribution == 'normal'){
+            out = nmfspatialbatch_norm(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
+          }
+          if(distribution == 'nb'){
+            out = nmfspatialbatch_nb(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq, alpha = alpha)
+          }
+      }
 
     }
     }

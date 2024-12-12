@@ -11,13 +11,15 @@ nnmf(
   lengthscale = NULL,
   batch = 1,
   maxiter = 1000,
-  tolerance = 1e-08,
+  tolerance = 1e-10,
   initial = 3,
   smallIter = 50,
   error_freq = 10,
   kernel_cutoff = 0.1,
   normalize = TRUE,
-  same_ls = TRUE
+  same_ls = TRUE,
+  distribution = "poisson",
+  alpha = NULL
 )
 }
 \arguments{

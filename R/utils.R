@@ -174,3 +174,69 @@ estimate_lengthscale = function(data, location = NULL, max_avg_nn = 20, max_pct 
   
   return(data.frame(lengthscale, test_error, row.names=NULL))
 }
+
+
+#' @title Estimation of the overdispersion parameter for Negative Binomial non-negative matrix factorization
+#'
+#' @description Likehood estimation of the dispersion parameter in negative binomial using Newton-Raphson.
+#' The overdispersion parameter can be either vector of length one or vector of length no. of patients if patient-specific overdispersion is used.
+#'
+#'
+#' @param data Numeric matrix of mutational counts data. Matrix size: no. of mutation types x no. of patients.
+#' @param estimate an estimate for the data to estimate dispersion
+#' @param patient_specific Logical. If TRUE patient-specific overdispersion is used in the Negative Binomial model.
+#'
+#'
+#' @return Overdispersion parameter. Either vector of length one or vector of length no. of patients if patient-specific overdispersion is used.
+#'
+#' @export
+#'
+dispersion_est <- function(data, estimate, patient_specific = FALSE){
+  
+  if(is.null(data)){
+    stop("The data set of the mutational counts is missing.")
+  }
+  if(is.null(estimate)){
+    stop("The data set of the mutational counts is missing.")
+  }
+  if(!identical(dim(data),dim(estimate))){
+    stop("The data and the estimate differ in size.")
+  }
+  
+  # differentiated once
+  neglikdiff1 = function(alpha, data, estimate){
+    sum(digamma(data + alpha) - digamma(alpha) - data/(alpha+estimate) - alpha/(alpha+estimate) + log(alpha/(alpha+estimate)) + 1)
+  }
+  
+  # differentiated twice
+  neglikdiff2 = function(alpha, data, estimate){
+    sum(trigamma(data + alpha) - trigamma(alpha) + data/(alpha+estimate)^2 + 1/alpha - 2/(alpha+estimate) + alpha/(alpha+estimate)^2)
+  }
+  
+  NR_alpha = function(data,estimate){
+    alpha <- 1/var(data/estimate)
+    alphaold = alpha + 5
+    for(i in 1:10){
+      alpha = alpha - neglikdiff1(alpha, data = data, estimate = estimate)/neglikdiff2(alpha, data = data, estimate = estimate)
+      if(!(alpha > 0)){ alpha = runif(1,1,10)}
+      
+      if(abs(alpha - alphaold) < 0.01) break
+      alphaold = alpha
+    }
+    return(alpha)
+  }
+  
+  if(patient_specific){
+    alpha = numeric(ncol(data))
+    for(i in 1:ncol(data)){
+      alpha[i] = NR_alpha(data[,i],estimate[,i])
+    }
+  }else{
+    data_vec = as.vector(data)
+    estimate_vec = as.vector(estimate)
+    
+    alpha = NR_alpha(data_vec,estimate_vec)
+  }
+  
+  return(alpha)
+}
