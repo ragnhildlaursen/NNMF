@@ -101,14 +101,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // nmfgen_nb
-List nmfgen_nb(arma::mat data, int noSignatures, arma::colvec alpha, int maxiter, double tolerance, int initial, int smallIter, int error_freq);
+List nmfgen_nb(arma::mat data, int noSignatures, double alpha, int maxiter, double tolerance, int initial, int smallIter, int error_freq);
 RcppExport SEXP _NNMF_nmfgen_nb(SEXP dataSEXP, SEXP noSignaturesSEXP, SEXP alphaSEXP, SEXP maxiterSEXP, SEXP toleranceSEXP, SEXP initialSEXP, SEXP smallIterSEXP, SEXP error_freqSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
     Rcpp::traits::input_parameter< int >::type noSignatures(noSignaturesSEXP);
-    Rcpp::traits::input_parameter< arma::colvec >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
     Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
     Rcpp::traits::input_parameter< int >::type initial(initialSEXP);
@@ -119,7 +119,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // nmfspatialbatch_nb
-List nmfspatialbatch_nb(arma::mat data, int noSignatures, List weight, List batch, arma::colvec alpha, int maxiter, double tolerance, int initial, int smallIter, int error_freq);
+List nmfspatialbatch_nb(arma::mat data, int noSignatures, List weight, List batch, double alpha, int maxiter, double tolerance, int initial, int smallIter, int error_freq);
 RcppExport SEXP _NNMF_nmfspatialbatch_nb(SEXP dataSEXP, SEXP noSignaturesSEXP, SEXP weightSEXP, SEXP batchSEXP, SEXP alphaSEXP, SEXP maxiterSEXP, SEXP toleranceSEXP, SEXP initialSEXP, SEXP smallIterSEXP, SEXP error_freqSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -128,7 +128,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type noSignatures(noSignaturesSEXP);
     Rcpp::traits::input_parameter< List >::type weight(weightSEXP);
     Rcpp::traits::input_parameter< List >::type batch(batchSEXP);
-    Rcpp::traits::input_parameter< arma::colvec >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
     Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
     Rcpp::traits::input_parameter< int >::type initial(initialSEXP);
@@ -139,7 +139,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // nmfspatialbatch2_nb
-List nmfspatialbatch2_nb(arma::mat data, int noSignatures, List weight, List batch, arma::colvec alpha, int maxiter, double tolerance, int error_freq);
+List nmfspatialbatch2_nb(arma::mat data, int noSignatures, List weight, List batch, double alpha, int maxiter, double tolerance, int error_freq);
 RcppExport SEXP _NNMF_nmfspatialbatch2_nb(SEXP dataSEXP, SEXP noSignaturesSEXP, SEXP weightSEXP, SEXP batchSEXP, SEXP alphaSEXP, SEXP maxiterSEXP, SEXP toleranceSEXP, SEXP error_freqSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -148,7 +148,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type noSignatures(noSignaturesSEXP);
     Rcpp::traits::input_parameter< List >::type weight(weightSEXP);
     Rcpp::traits::input_parameter< List >::type batch(batchSEXP);
-    Rcpp::traits::input_parameter< arma::colvec >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
     Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
     Rcpp::traits::input_parameter< int >::type error_freq(error_freqSEXP);
@@ -157,7 +157,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // nmfspatial_nb
-List nmfspatial_nb(arma::mat data, int noSignatures, arma::mat weight, arma::colvec alpha, int maxiter, double tolerance, int initial, int smallIter, int error_freq);
+List nmfspatial_nb(arma::mat data, int noSignatures, arma::mat weight, double alpha, int maxiter, double tolerance, int initial, int smallIter, int error_freq);
 RcppExport SEXP _NNMF_nmfspatial_nb(SEXP dataSEXP, SEXP noSignaturesSEXP, SEXP weightSEXP, SEXP alphaSEXP, SEXP maxiterSEXP, SEXP toleranceSEXP, SEXP initialSEXP, SEXP smallIterSEXP, SEXP error_freqSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -165,7 +165,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
     Rcpp::traits::input_parameter< int >::type noSignatures(noSignaturesSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type weight(weightSEXP);
-    Rcpp::traits::input_parameter< arma::colvec >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
     Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
     Rcpp::traits::input_parameter< int >::type initial(initialSEXP);
@@ -176,7 +176,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // nmftrain_nb
-List nmftrain_nb(arma::mat data, arma::mat exposures, arma::mat signatures, arma::mat sigma, arma::vec ls_vec, arma::colvec alpha, int maxiter, double tolerance, int error_freq);
+List nmftrain_nb(arma::mat data, arma::mat exposures, arma::mat signatures, arma::mat sigma, arma::vec ls_vec, double alpha, int maxiter, double tolerance, int error_freq);
 RcppExport SEXP _NNMF_nmftrain_nb(SEXP dataSEXP, SEXP exposuresSEXP, SEXP signaturesSEXP, SEXP sigmaSEXP, SEXP ls_vecSEXP, SEXP alphaSEXP, SEXP maxiterSEXP, SEXP toleranceSEXP, SEXP error_freqSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -186,7 +186,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type signatures(signaturesSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type sigma(sigmaSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type ls_vec(ls_vecSEXP);
-    Rcpp::traits::input_parameter< arma::colvec >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
     Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
     Rcpp::traits::input_parameter< int >::type error_freq(error_freqSEXP);

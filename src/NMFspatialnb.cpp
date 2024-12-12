@@ -6,16 +6,20 @@
 
 using namespace Rcpp;
 
-double error_nb(arma::colvec y, arma::colvec mu) {
+double error_nb(arma::colvec y, arma::colvec mu, double alpha) {
   int ySize = y.size();
   double sum = 0;
-  for (int i=0; i<ySize; i++) {
-      sum += pow(y[i] - mu[i],2);
+  for (int i=0; i<ySize; i++){
+    if (y[i] <= 0 || mu[i] <= 0) {
+      sum += -(y[i] + alpha) * (log(alpha + y[i]) - log(alpha + mu[i]));
+    } else {
+      sum += y[i] * (log(y[i]) - log(mu[i])) -(y[i] + alpha) * (log(alpha + y[i]) - log(alpha + mu[i]));
+    }
   }
   return sum;
 }
 
-std::tuple<arma::mat, arma::mat, double> nmf1_nb(arma::mat data, int noSignatures, arma::colvec alpha, int iter = 5000) {
+std::tuple<arma::mat, arma::mat, double> nmf1_nb(arma::mat data, int noSignatures, double alpha, int iter = 5000) {
   int genomes = data.n_rows;
   int mutTypes = data.n_cols;
   
@@ -23,8 +27,8 @@ std::tuple<arma::mat, arma::mat, double> nmf1_nb(arma::mat data, int noSignature
   
   arma::mat signatures(noSignatures, mutTypes, arma::fill::randu);
   
-  arma::mat alphamat(genomes, mutTypes, arma::fill::zeros);
-  alphamat.each_col() = alpha; 
+  arma::mat alphamat(genomes, mutTypes);
+  alphamat.fill(alpha); 
   
   arma::mat estimate = exposures * signatures;
   
@@ -55,13 +59,13 @@ std::tuple<arma::mat, arma::mat, double> nmf1_nb(arma::mat data, int noSignature
     }
     
   }
-  double gkl = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+  double gkl = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
   
   return {exposures, signatures, gkl};
 }
 
 // [[Rcpp::export]]
-List nmfgen_nb(arma::mat data, int noSignatures, arma::colvec alpha, int maxiter = 10000, double tolerance = 1e-8, int initial = 10, int smallIter = 100, int error_freq = 10) {
+List nmfgen_nb(arma::mat data, int noSignatures, double alpha, int maxiter = 10000, double tolerance = 1e-8, int initial = 10, int smallIter = 100, int error_freq = 10) {
   int genomes = data.n_rows;
   int mutTypes = data.n_cols;
   
@@ -84,11 +88,11 @@ List nmfgen_nb(arma::mat data, int noSignatures, arma::colvec alpha, int maxiter
   
   arma::mat estimate = exposures * signatures;
   
-  double gklOld = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+  double gklOld = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
   double gklNew = 2*gklOld;
   arma::vec gklvalues(maxiter);
-  arma::mat alphamat(genomes, mutTypes, arma::fill::zeros);
-  alphamat.each_col() = alpha; 
+  arma::mat alphamat(genomes, mutTypes);
+  alphamat.fill(alpha);
   
   for(int t = 0; t < maxiter; t++){
     signatures = signatures % ((arma::trans(exposures) * (data/estimate))/(arma::trans(exposures)*((alphamat + data)/(alphamat + estimate))));
@@ -108,7 +112,7 @@ List nmfgen_nb(arma::mat data, int noSignatures, arma::colvec alpha, int maxiter
     gklvalues.at(t) = gklOld;
     
     if(t - floor(t/error_freq)*error_freq == 0){
-      gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+      gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
       
       if ((2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance) & (t > error_freq)){
         Rcout << "Total iterations:";
@@ -121,7 +125,7 @@ List nmfgen_nb(arma::mat data, int noSignatures, arma::colvec alpha, int maxiter
     
   }
   
-  gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+  gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
   
   List output = List::create(Named("exposures") = exposures,
                              Named("signatures") = signatures,
@@ -133,7 +137,7 @@ List nmfgen_nb(arma::mat data, int noSignatures, arma::colvec alpha, int maxiter
 
 
 // [[Rcpp::export]]
-List nmfspatialbatch_nb(arma::mat data, int noSignatures, List weight, List batch, arma::colvec alpha, int maxiter = 10000, double tolerance = 1e-8, int initial = 10, int smallIter = 100, int error_freq = 10) {
+List nmfspatialbatch_nb(arma::mat data, int noSignatures, List weight, List batch, double alpha, int maxiter = 10000, double tolerance = 1e-8, int initial = 10, int smallIter = 100, int error_freq = 10) {
   int genomes = data.n_rows;
   int mutTypes = data.n_cols;
   int nobatches = batch.size();
@@ -156,12 +160,12 @@ List nmfspatialbatch_nb(arma::mat data, int noSignatures, List weight, List batc
   }
   
   arma::mat estimate = exposures * signatures;  
-  double gklOld = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+  double gklOld = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
   double gklNew = 2*gklOld;
   arma::vec gklvalues(maxiter);
   
-  arma::mat alphamat(genomes, mutTypes, arma::fill::zeros);
-  alphamat.each_col() = alpha; 
+  arma::mat alphamat(genomes, mutTypes);
+  alphamat.fill(alpha);
   
 
   
@@ -197,7 +201,7 @@ List nmfspatialbatch_nb(arma::mat data, int noSignatures, List weight, List batc
     gklvalues.at(t) = gklOld;
     
     if(t - floor(t/error_freq)*error_freq == 0){
-      gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+      gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
       if(t - floor(t/100)*100 == 0){
         Rcout << "Total iterations:";
         Rcout << t;
@@ -217,7 +221,7 @@ List nmfspatialbatch_nb(arma::mat data, int noSignatures, List weight, List batc
     
   }
   
-  gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+  gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
   
   List output = List::create(Named("exposures") = exposures,
                              Named("signatures") = signatures,
@@ -228,7 +232,7 @@ List nmfspatialbatch_nb(arma::mat data, int noSignatures, List weight, List batc
 }
 
 // [[Rcpp::export]]
-List nmfspatialbatch2_nb(arma::mat data, int noSignatures, List weight, List batch, arma::colvec alpha, int maxiter = 10000, double tolerance = 1e-8, int error_freq = 10) {
+List nmfspatialbatch2_nb(arma::mat data, int noSignatures, List weight, List batch, double alpha, int maxiter = 10000, double tolerance = 1e-8, int error_freq = 10) {
   
   int nobatches = batch.size();
   
@@ -241,11 +245,11 @@ List nmfspatialbatch2_nb(arma::mat data, int noSignatures, List weight, List bat
   
   arma::mat estimate = exposures * signatures;
   
-  double gklOld = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+  double gklOld = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
   double gklNew = 2*gklOld;
   arma::vec gklvalues(maxiter);
-  arma::mat alphamat(genomes, mutTypes, arma::fill::zeros);
-  alphamat.each_col() = alpha; 
+  arma::mat alphamat(genomes, mutTypes);
+  alphamat.fill(alpha);
   
   
   for(int t = 0; t < maxiter; t++){
@@ -282,7 +286,7 @@ List nmfspatialbatch2_nb(arma::mat data, int noSignatures, List weight, List bat
     gklvalues.at(t) = gklOld;
     
     if(t - floor(t/error_freq)*error_freq == 0){
-      gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+      gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
       if(t - floor(t/100)*100 == 0){
       Rcout << "Total iterations:";
       Rcout << t;
@@ -301,7 +305,7 @@ List nmfspatialbatch2_nb(arma::mat data, int noSignatures, List weight, List bat
     
   }
   
-  gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+  gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
   
   List output = List::create(Named("exposures") = exposures,
                              Named("signatures") = signatures,
@@ -312,7 +316,7 @@ List nmfspatialbatch2_nb(arma::mat data, int noSignatures, List weight, List bat
 }
 
 // [[Rcpp::export]]
-List nmfspatial_nb(arma::mat data, int noSignatures, arma::mat weight, arma::colvec alpha, int maxiter = 10000, double tolerance = 1e-8, int initial = 5, int smallIter = 100, int error_freq = 10) {
+List nmfspatial_nb(arma::mat data, int noSignatures, arma::mat weight, double alpha, int maxiter = 10000, double tolerance = 1e-8, int initial = 5, int smallIter = 100, int error_freq = 10) {
   int genomes = data.n_rows;
   int mutTypes = data.n_cols;
   
@@ -334,11 +338,11 @@ List nmfspatial_nb(arma::mat data, int noSignatures, arma::mat weight, arma::col
   }
   arma::mat estimate = exposures * signatures;
   
-  double gklOld = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+  double gklOld = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
   double gklNew = 2*gklOld;
   arma::vec gklvalues(maxiter);
-  arma::mat alphamat(genomes, mutTypes, arma::fill::zeros);
-  alphamat.each_col() = alpha; 
+  arma::mat alphamat(genomes, mutTypes);
+  alphamat.fill(alpha);
   
   
   for(int t = 0; t < maxiter; t++){
@@ -364,7 +368,7 @@ List nmfspatial_nb(arma::mat data, int noSignatures, arma::mat weight, arma::col
      
     gklvalues.at(t) = gklOld;
     if(t - floor(t/error_freq)*error_freq == 0){
-    gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+    gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
     
     if ((2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance) & (t > error_freq)){
       Rcout << "Total iterations:";
@@ -385,7 +389,7 @@ List nmfspatial_nb(arma::mat data, int noSignatures, arma::mat weight, arma::col
 }
 
 // [[Rcpp::export]]
-List nmftrain_nb(arma::mat data, arma::mat exposures, arma::mat signatures, arma::mat sigma, arma::vec ls_vec, arma::colvec alpha, int maxiter = 5000, double tolerance = 1e-8, int error_freq = 10) {
+List nmftrain_nb(arma::mat data, arma::mat exposures, arma::mat signatures, arma::mat sigma, arma::vec ls_vec, double alpha, int maxiter = 5000, double tolerance = 1e-8, int error_freq = 10) {
   int genomes = data.n_rows;
   int mutTypes = data.n_cols;
   
@@ -395,12 +399,12 @@ List nmftrain_nb(arma::mat data, arma::mat exposures, arma::mat signatures, arma
   
   arma::mat estimate = exposures * signatures;
   
-  double gklOld = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+  double gklOld = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
   double gklNew = 2*gklOld;
   arma::vec gklvalues(maxiter);
   
-  arma::mat alphamat(genomes, mutTypes, arma::fill::zeros);
-  alphamat.each_col() = alpha; 
+  arma::mat alphamat(genomes, mutTypes);
+  alphamat.fill(alpha);
   
   for(int t = 0; t < maxiter; t++){
     signatures = signatures % ((arma::trans(exposures) * (data/estimate))/(arma::trans(exposures)*((alphamat + data)/(alphamat + estimate))));
@@ -416,7 +420,7 @@ List nmftrain_nb(arma::mat data, arma::mat exposures, arma::mat signatures, arma
     if(t - floor(t/2)*2 == 0){
     arma::colvec exp_sum = sum(exposures,1);
     exposures = exposures.each_col() / exp_sum;
-    for(int col = 0; col<noSignatures; col++) {
+    for(int col = 0; col<noSignatures; col++){
       if(ls_vec(col) > 0){
       weight = arma::pow(sigma,ls_vec(col));
       weight = arma::normalise(weight,1,1);
@@ -431,7 +435,7 @@ List nmftrain_nb(arma::mat data, arma::mat exposures, arma::mat signatures, arma
    
     gklvalues.at(t) = gklOld;
     if(t - floor(t/error_freq)*error_freq == 0){
-      gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate));
+      gklNew = error_nb(arma::vectorise(data),arma::vectorise(estimate), alpha);
       
       if ((2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance) & (t > error_freq)){
         Rcout << "Total iterations:";

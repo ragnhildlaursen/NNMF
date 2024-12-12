@@ -183,14 +183,13 @@ estimate_lengthscale = function(data, location = NULL, max_avg_nn = 20, max_pct 
 #'
 #'
 #' @param data Numeric matrix of mutational counts data. Matrix size: no. of mutation types x no. of patients.
-#' @param k Number of signatures to be used for the non-negative matrix factorization
+#' @param estimate an estimate for the data to estimate dispersion
 #' @param patient_specific Logical. If TRUE patient-specific overdispersion is used in the Negative Binomial model.
 #'
 #'
 #' @return Overdispersion parameter. Either vector of length one or vector of length no. of patients if patient-specific overdispersion is used.
 #'
 #' @export
-#'
 #'
 dispersion_est <- function(data, estimate, patient_specific = FALSE){
   

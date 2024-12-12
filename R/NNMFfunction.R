@@ -125,7 +125,6 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 #'  }
 #' @export
 #'
-#' @examples
 nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 1000, tolerance = 1e-10, initial = 3, smallIter = 50, error_freq = 10,kernel_cutoff = 0.1,normalize = TRUE, same_ls = TRUE, distribution = "poisson", alpha = NULL){
 
   if(sum(colSums(data) == 0) > 0){
@@ -141,11 +140,11 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
         data = data/row_sum*10000
   }
   
-  if(!(distribution == "poisson" | distribution == "nb" | distribution = "normal")){
+  if(!(distribution == "poisson" | distribution == "nb" | distribution == "normal")){
     stop("The distribution needs to be specified to either poisson, nb or normal.")
   }
   
-  if(distribution == "nb" & (is.null(alpha) | alpha <= 0)){
+  if(distribution == "nb" && (is.null(alpha) | alpha <= 0)){
     stop("alpha need to be specified to a positive number when assuming negative binomial")
   }
     
@@ -160,7 +159,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
         out = nmfgen_norm(data = data, noSignatures = noSignatures, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
       }
       if(distribution == 'nb'){
-        out = nmfgen_nb(data = data, noSignatures = noSignatures, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq, alpha = rep(alpha,nrow(data)))
+        out = nmfgen_nb(data = data, noSignatures = noSignatures, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq, alpha = alpha)
       }
     }else{
       
@@ -203,7 +202,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
             out = nmfspatial_norm(data = data, noSignatures = noSignatures, weight = weight, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter)
           }
           if(distribution == 'nb'){
-            out = nmfspatial_nb(data = data, noSignatures = noSignatures, weight = weight, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, alpha = rep(alpha,nrow(data)))
+            out = nmfspatial_nb(data = data, noSignatures = noSignatures, weight = weight, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, alpha = alpha)
           }
         }else{
           # estimating different length scales
@@ -266,7 +265,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
             out = nmfspatialbatch2_norm(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, error_freq = error_freq)
           }
           if(distribution == 'nb'){
-            out = nmfspatialbatch2_nb(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, error_freq = error_freq, alpha = rep(alpha,nrow(data)))
+            out = nmfspatialbatch2_nb(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, error_freq = error_freq, alpha = alpha)
           }
         }else{
           if(distribution == 'poisson'){
@@ -276,7 +275,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
             out = nmfspatialbatch_norm(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
           }
           if(distribution == 'nb'){
-            out = nmfspatialbatch_nb(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq, alpha = rep(alpha,nrow(data)))
+            out = nmfspatialbatch_nb(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq, alpha = alpha)
           }
       }
 
