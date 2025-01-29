@@ -17,9 +17,7 @@
 #' @examples
 dist_fun = function(X, Y = NULL){
   if(is.null(Y)){
-    X2 = rowSums(X^2)
-    X2 = matrix(X2, nrow = length(X2), ncol = length(X2), byrow = F)
-    r = X2 - 2*X%*%t(X) + t(X2)
+    r = dist(X, diag = T, upper = T)^2
   }else{
     if(ncol(X) != ncol(Y)){
       stop("The number of columns in X and Y need to be the same.")
@@ -45,18 +43,20 @@ dist_fun = function(X, Y = NULL){
 
 
 dist_index = function(X,index){
-  X2 = rowSums(X^2)
+  
+  target <- X[index, ]  # Extract the index rows
+  
   if(length(index) < 2){
-    r = sum(X[index,]^2) - 2*X[index,]%*%t(X) + X2
+    r <- apply(X, 1, function(xvar) sum((xvar - target)^2))
   }else{
-    X2 = matrix(X2, nrow = length(index), ncol = length(X2), byrow = T)
-    r = rowSums(X[index,]^2) - 2*X[index,]%*%t(X) + X2
+    r <- apply(X, 1, function(x) apply(target, 1, function(y) sum((x - y)^2)))
+    r = t(r)
   }
   
   if(any(r<0)){
     warning("Some distances were smaller than zero! Try scaling up the locations.")
     r[r<0] = 0
-  } 
+  }
   return(r)
 }
 
@@ -144,8 +144,10 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
     stop("The distribution needs to be specified to either poisson, nb or normal.")
   }
   
-  if(distribution == "nb" && (is.null(alpha) | alpha <= 0)){
+  if(distribution == "nb"){
+    if((is.null(alpha) | alpha <= 0)){
     stop("alpha need to be specified to a positive number when assuming negative binomial")
+    }
   }
     
     mean_nn = 0
