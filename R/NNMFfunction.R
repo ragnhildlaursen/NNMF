@@ -9,7 +9,7 @@
 #' The distance between two matrices of location
 #'
 #' @param X matrix of location
-#' @param Y optional other matrix of location to take distance to.
+#' @param Y optional other matrix of location to take distance to
 #'
 #' @return symmetric matrix of distances.
 #' @export

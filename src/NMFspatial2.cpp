@@ -29,25 +29,20 @@ std::tuple<arma::mat, arma::mat, double> nmf1(arma::mat data, int noSignatures, 
   arma::mat signatures(noSignatures, mutTypes, arma::fill::randu);
   
   arma::mat estimate = exposures * signatures;
-  arma::mat fraq = data/estimate;
   
   
   for(int t = 0; t < iter; t++){
     
-    signatures = signatures % (arma::trans(exposures) * fraq);
+    signatures = signatures % (arma::trans(exposures) * (data/estimate));
     signatures = arma::normalise(signatures,1,1);
-    
     signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
 
     estimate = exposures * signatures;
-    fraq = data/estimate;
 
-    exposures = exposures % (fraq * arma::trans(signatures));
-
+    exposures = exposures % ((data/estimate) * arma::trans(signatures));
     exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
     
     estimate = exposures * signatures;
-    fraq = data/estimate;
     
     if(t - floor(t/5)*5 == 0){
       for(int r = 0; r<noSignatures; r++) {
@@ -95,13 +90,11 @@ List nmfgen(arma::mat data, int noSignatures, int maxiter = 10000, double tolera
     
     signatures = signatures % (arma::trans(exposures) * (data/estimate));
     signatures = arma::normalise(signatures,1,1);
-    
     signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
     
     estimate = exposures * signatures;
     
     exposures = exposures % ((data/estimate) * arma::trans(signatures));
-    
     exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
     
     estimate = exposures * signatures;
@@ -170,8 +163,8 @@ List nmfspatialbatch(arma::mat data, int noSignatures, List weight, List batch, 
 
     //signature update
     signatures = signatures % (arma::trans(exposures) * (data/estimate));
-    signatures = arma::normalise(signatures,1,1);
     signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    signatures = arma::normalise(signatures,1,1);
 
     estimate = exposures * signatures;
 
@@ -190,7 +183,8 @@ List nmfspatialbatch(arma::mat data, int noSignatures, List weight, List batch, 
       exposures.rows(batch_index) = exposures_batch;
     }
     exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
-
+    exposures = arma::normalise(exposures,1,0);
+    
     estimate = exposures * signatures;
 
     //signature update
@@ -259,15 +253,13 @@ List nmfspatialbatch2(arma::mat data, int noSignatures, List weight, List batch,
     exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
 
     estimate = exposures * signatures;
-    estimate.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
 
     //signature update
     signatures = signatures % (arma::trans(exposures) * (data/estimate));
-    signatures = arma::normalise(signatures,1,1);
     signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    signatures = arma::normalise(signatures,1,1);
 
     estimate = exposures * signatures;
-    estimate.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
 
     //exposure update w. smoothing
     exposures = exposures % ((data/estimate) * arma::trans(signatures));
@@ -286,15 +278,18 @@ List nmfspatialbatch2(arma::mat data, int noSignatures, List weight, List batch,
       exposures.rows(batch_index) = exposures_batch;
     }
     exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
-
+    exposures = arma::normalise(exposures,1,0);
+    
     estimate = exposures * signatures;
-    estimate.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+
 
     //signature update
     signatures = signatures % (arma::trans(exposures) * (data/estimate));
     signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
-
-    gklvalues.at(t) = gklOld;
+    
+    estimate = exposures * signatures;
+    
+   
     
     if(t - floor(t/error_freq)*error_freq == 0){
       gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
@@ -313,7 +308,7 @@ List nmfspatialbatch2(arma::mat data, int noSignatures, List weight, List batch,
       }
       gklOld = gklNew;
     }
-    
+    gklvalues.at(t) = gklOld;
   }
 
   arma::colvec rsum = sum(signatures,1);
@@ -357,27 +352,37 @@ List nmfspatial(arma::mat data, int noSignatures, arma::mat weight, int maxiter 
   arma::vec gklvalues(maxiter);
   
   for(int t = 0; t < maxiter; t++){
+    //exposure update
     exposures = exposures % ((data/estimate) * arma::trans(signatures));
     exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
-
-    signatures = signatures % (arma::trans(exposures) * (data/estimate));
-    signatures = arma::normalise(signatures,1,1);
-    signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
     
     estimate = exposures * signatures;
+    
+    //signature update
+    signatures = signatures % (arma::trans(exposures) * (data/estimate));
+    signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    signatures = arma::normalise(signatures,1,1);
+    
+    estimate = exposures * signatures;
+    
+    //exposure update w. weighting
     exposures = exposures % ((data/estimate) * arma::trans(signatures));
     arma::colvec exp_sum = sum(exposures,1);
     exposures = exposures.each_col() / exp_sum;
     exposures = weight * exposures;
     exposures = exposures.each_col() % exp_sum;
     exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    exposures = arma::normalise(exposures,1,0);
     
     estimate = exposures * signatures;
     
+    //signature update
     signatures = signatures % (arma::trans(exposures) * (data/estimate));
     signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    
+    estimate = exposures * signatures;
 
-    gklvalues.at(t) = gklOld;
+    
     if(t - floor(t/error_freq)*error_freq == 0){
     gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
     
@@ -387,8 +392,11 @@ List nmfspatial(arma::mat data, int noSignatures, arma::mat weight, int maxiter 
       Rcout << "\n";
       break;
     }
+    
     gklOld = gklNew;
     }
+    
+    gklvalues.at(t) = gklOld;
   }
   
   arma::colvec rsum = sum(signatures,1);

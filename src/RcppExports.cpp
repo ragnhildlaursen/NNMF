@@ -82,24 +82,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// nmftrain
-List nmftrain(arma::mat data, arma::mat exposures, arma::mat signatures, arma::mat sigma, arma::vec ls_vec, int maxiter, double tolerance, int error_freq);
-RcppExport SEXP _NNMF_nmftrain(SEXP dataSEXP, SEXP exposuresSEXP, SEXP signaturesSEXP, SEXP sigmaSEXP, SEXP ls_vecSEXP, SEXP maxiterSEXP, SEXP toleranceSEXP, SEXP error_freqSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type exposures(exposuresSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type signatures(signaturesSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type ls_vec(ls_vecSEXP);
-    Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
-    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
-    Rcpp::traits::input_parameter< int >::type error_freq(error_freqSEXP);
-    rcpp_result_gen = Rcpp::wrap(nmftrain(data, exposures, signatures, sigma, ls_vec, maxiter, tolerance, error_freq));
-    return rcpp_result_gen;
-END_RCPP
-}
 // nmfgen_nb
 List nmfgen_nb(arma::mat data, int noSignatures, double alpha, int maxiter, double tolerance, int initial, int smallIter, int error_freq);
 RcppExport SEXP _NNMF_nmfgen_nb(SEXP dataSEXP, SEXP noSignaturesSEXP, SEXP alphaSEXP, SEXP maxiterSEXP, SEXP toleranceSEXP, SEXP initialSEXP, SEXP smallIterSEXP, SEXP error_freqSEXP) {
@@ -289,7 +271,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_NNMF_nmfspatialbatch", (DL_FUNC) &_NNMF_nmfspatialbatch, 9},
     {"_NNMF_nmfspatialbatch2", (DL_FUNC) &_NNMF_nmfspatialbatch2, 7},
     {"_NNMF_nmfspatial", (DL_FUNC) &_NNMF_nmfspatial, 8},
-    {"_NNMF_nmftrain", (DL_FUNC) &_NNMF_nmftrain, 8},
     {"_NNMF_nmfgen_nb", (DL_FUNC) &_NNMF_nmfgen_nb, 8},
     {"_NNMF_nmfspatialbatch_nb", (DL_FUNC) &_NNMF_nmfspatialbatch_nb, 10},
     {"_NNMF_nmfspatialbatch2_nb", (DL_FUNC) &_NNMF_nmfspatialbatch2_nb, 8},

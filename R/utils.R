@@ -119,7 +119,7 @@ estimate_lengthscale = function(data, location = NULL, max_avg_nn = 20, max_pct 
       stop("You need to specify either location or dist (distance) matrix for your data points. ")
     }
     
-    dist = dist_fun(location,location)
+    dist = dist_fun(location)
     diag(dist) = Inf
   }else{
     if(nrow(dist) != nrow(data) | ncol(dist) != nrow(data)){
