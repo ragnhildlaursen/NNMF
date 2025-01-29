@@ -17,7 +17,7 @@
 #' @examples
 dist_fun = function(X, Y = NULL){
   if(is.null(Y)){
-    r = dist(X, diag = T, upper = T)^2
+    r = as.matrix(dist(X, diag = T, upper = T)^2)
   }else{
     if(ncol(X) != ncol(Y)){
       stop("The number of columns in X and Y need to be the same.")
