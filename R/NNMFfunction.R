@@ -125,7 +125,7 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 #'  }
 #' @export
 #'
-nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 1000, tolerance = 1e-10, initial = 3, smallIter = 50, error_freq = 10,kernel_cutoff = 0.1,normalize = TRUE){
+nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 1000, tolerance = 1e-10, initial = 3, smallIter = 50, error_freq = 10,kernel_cutoff = 0.1,normalize = TRUE, not_sc = FALSE){
 
   if(!is.matrix(data)){
     stop("The data needs to be of class matrix.")
@@ -231,6 +231,10 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
           
       }
 
+    }
+    
+    if(not_sc){
+      out$exposures = out$exposures * ((data/(out$exposures%*%out$signatures)) %*% t(out$signatures))
     }
     }
     output = list()
