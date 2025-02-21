@@ -125,7 +125,7 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 #'  }
 #' @export
 #'
-nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 1000, tolerance = 1e-10, initial = 3, smallIter = 50, error_freq = 10,kernel_cutoff = 0.1,normalize = TRUE, same_ls = TRUE){
+nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 1000, tolerance = 1e-10, initial = 3, smallIter = 50, error_freq = 10,kernel_cutoff = 0.1,normalize = TRUE){
 
   if(!is.matrix(data)){
     stop("The data needs to be of class matrix.")
@@ -165,8 +165,6 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
         }
         
         dist = dist_fun(location)
-        
-        if(same_ls){
           
           if(is.null(lengthscale)){
             # est_ls = estimate_lengthscale(data = data, dist = dist, max_avg_nn = 25, column_ls = FALSE)
@@ -186,22 +184,6 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
 
           out = nmfspatial(data = data, noSignatures = noSignatures, weight = weight, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter)
 
-        }else{
-          # estimating different length scales
-          out_start = nmfgen(data = data, noSignatures = noSignatures, maxiter = 100, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
-
-          est_ls = estimate_lengthscale(data = out_start$exposures, dist = dist, max_avg_nn = 25, column_ls = TRUE)
-          ls_min = apply(est_ls[,-1],2,function(x) est_ls[which.min(x),1])
-          
-          sigma = exp(-dist/(max(ls_min)^2))
-          sigma[sigma < kernel_cutoff] = 0
-          ls_vec = max(ls_min)^2/ls_min^2
-          ls_vec[ls_min == max(est_ls[,1])] = 0
-          
-          out = nmftrain(data = data, exposures = out_start$exposures, signatures = out_start$signatures, sigma = sigma, ls_vec = ls_vec, maxiter = maxiter, tolerance = tolerance)
-          
-          ls_min[ls_min == max(est_ls[,1])] = 0
-        }
       }else{
         
         if(nrow(data) != length(batch)){

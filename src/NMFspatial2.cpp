@@ -282,14 +282,11 @@ List nmfspatialbatch2(arma::mat data, int noSignatures, List weight, List batch,
     
     estimate = exposures * signatures;
 
-
     //signature update
     signatures = signatures % (arma::trans(exposures) * (data/estimate));
     signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
     
     estimate = exposures * signatures;
-    
-   
     
     if(t - floor(t/error_freq)*error_freq == 0){
       gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
