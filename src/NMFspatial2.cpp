@@ -197,13 +197,13 @@ List nmfspatialbatch(arma::mat data, int noSignatures, List weight, List batch, 
     
     if(t - floor(t/error_freq)*error_freq == 0){
       gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
-      if(t - floor(t/100)*100 == 0){
-        Rcout << "Total iterations:";
-        Rcout << t;
-        Rcout << "  error:";
-        Rcout << gklNew;
-        Rcout << "\n";
-      }
+      // if(t - floor(t/100)*100 == 0){
+      //   Rcout << "Total iterations:";
+      //   Rcout << t;
+      //   Rcout << "  error:";
+      //   Rcout << gklNew;
+      //   Rcout << "\n";
+      // }
       if ((2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance) & (t > error_freq)){
         Rcout << "Total iterations:";
         Rcout << t;
@@ -293,13 +293,13 @@ List nmfspatialbatch2(arma::mat data, int noSignatures, List weight, List batch,
     
     if(t - floor(t/error_freq)*error_freq == 0){
       gklNew = error(arma::vectorise(data),arma::vectorise(estimate));
-      if(t - floor(t/100)*100 == 0){
-      Rcout << "Total iterations:";
-      Rcout << t;
-      Rcout << "  error:";
-      Rcout << gklNew;
-      Rcout << "\n";
-      }
+      // if(t - floor(t/100)*100 == 0){
+      // Rcout << "Total iterations:";
+      // Rcout << t;
+      // Rcout << "  error:";
+      // Rcout << gklNew;
+      // Rcout << "\n";
+      // }
       if ((2*(gklOld - gklNew)/(0.1 + std::abs(2*gklNew)) < tolerance) & (t > error_freq)){
         Rcout << "Total iterations:";
         Rcout << t;
