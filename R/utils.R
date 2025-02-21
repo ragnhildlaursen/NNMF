@@ -7,7 +7,6 @@
 #' @return a matrix of top features for each signature. (number of signatures x ntop)
 #' @export
 #'
-#' @examples
 topfeatures = function(signatures, feature_names, ntop = 10){
   if(ncol(signatures) != length(feature_names)){
     stop("The feature_names need to be the same length as the number of columns in signatures. \n")

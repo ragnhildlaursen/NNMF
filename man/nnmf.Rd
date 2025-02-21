@@ -17,9 +17,7 @@ nnmf(
   error_freq = 10,
   kernel_cutoff = 0.1,
   normalize = TRUE,
-  same_ls = TRUE,
-  distribution = "poisson",
-  alpha = NULL
+  not_sc = FALSE
 )
 }
 \arguments{

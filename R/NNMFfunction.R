@@ -1,10 +1,31 @@
-# Function for batch updates of spatial nmf
+#' Compute Distance Between Locations
+#' 
+#' The distance between indexes of locations and all other locations in location matrix
+#'
+#' @param X matrix of location
+#' @param index a vector of the indexes from which you want the distance to all other observations in the location matrix
+#'
+#' @return matrix of distances between the specified indexes and all other observations in the matrix of locations
+#' 
 #' @import Rcpp
 #' @import RcppArmadillo
-
-
-
-#############################################
+dist_index = function(X,index){
+  
+  target <- X[index, ]  # Extract the index rows
+  
+  if(length(index) < 2){
+    r <- apply(X, 1, function(xvar) sum((xvar - target)^2))
+  }else{
+    r <- apply(X, 1, function(x) apply(target, 1, function(y) sum((x - y)^2)))
+    r = t(r)
+  }
+  
+  if(any(r<0)){
+    warning("Some distances were smaller than zero! Try scaling up the locations.")
+    r[r<0] = 0
+  }
+  return(r)
+}
 
 #' The distance between two matrices of location
 #'
@@ -14,7 +35,6 @@
 #' @return symmetric matrix of distances.
 #' @export
 #'
-#' @examples
 dist_fun = function(X, Y = NULL){
   if(is.null(Y)){
     r = as.matrix(dist(X, diag = T, upper = T)^2)
@@ -39,28 +59,6 @@ dist_fun = function(X, Y = NULL){
   return(r)
 }
 
-
-
-
-dist_index = function(X,index){
-  
-  target <- X[index, ]  # Extract the index rows
-  
-  if(length(index) < 2){
-    r <- apply(X, 1, function(xvar) sum((xvar - target)^2))
-  }else{
-    r <- apply(X, 1, function(x) apply(target, 1, function(y) sum((x - y)^2)))
-    r = t(r)
-  }
-  
-  if(any(r<0)){
-    warning("Some distances were smaller than zero! Try scaling up the locations.")
-    r[r<0] = 0
-  }
-  return(r)
-}
-
-
 #' Creates batches of observations that are close in distance
 #'
 #' @param location a matrix of locations (observations x 2)
@@ -70,7 +68,6 @@ dist_index = function(X,index){
 #' @return A vector of the same length as the number of locations
 #' @export
 #'
-#' @examples
 groupondist = function(location, size = NULL, no_groups = NULL){
     n = nrow(location)
     left = c(1:n)

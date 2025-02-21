@@ -1,4 +1,4 @@
-\name{NNMF-package}
+\name{NNMF}
 \alias{NNMF-package}
 \alias{NNMF}
 \docType{package}
@@ -9,11 +9,9 @@
 \packageDescription{NNMF}
 }
 \details{
-
 The DESCRIPTION file:
 \packageDESCRIPTION{NNMF}
 \packageIndices{NNMF}
-The NNMF package provides a fast function 'nnmf' to calculate the factors of non-negative matrix factorization for spatial data. It makes neighboring observations share similar weights for the different factors using gaussian smoothing in the multiplicative updates of NMF. 
 }
 \author{
 \packageAuthor{NNMF}
@@ -27,9 +25,17 @@ Maintainer: \packageMaintainer{NNMF}
 ~~ R documentation directory ~~
 \keyword{ package }
 \seealso{
-~~ Optional links to other man pages, e.g. ~~
+https://github.com/ragnhildlaursen/NNMF for more decription
 ~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
 }
 \examples{
-~~ simple examples of the most important functions ~~
+library(NNMF)
+# simulate data
+data = matrix(rpois(1000*100,10), nrow = 1000) # load your count data here (observations x features)
+location = matrix(runif(1000*2), nrow = 1000) # location of your observation (observations x 2)
+
+res = nnmf(data = data, noSignatures = 2, location = location)
+
+res$weights # The weights for each signature
+res$signatures # The two signatures
 }
