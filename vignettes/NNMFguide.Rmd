@@ -88,7 +88,7 @@ Instead of using the default length scale (which is the average distance to the 
 
 ```{r}
 # a matrix including the predictions given different lengthscales
-ls_mat = estimate_lengthscale(data, locacations, max_avg_nn = 30, batch = batch_id)
+ls_mat = estimate_lengthscale(data, location, max_avg_nn = 30, batch = batch_id)
 # Identifying the lengthscale with the best prediction.
 ls = ls_mat[which.min(ls_mat[,2]),1]
 ```
