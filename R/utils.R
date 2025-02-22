@@ -110,8 +110,26 @@ nn_adj = function(location,celltype,nn = 5,sampleid = NULL){
 #' @return A data.frame of the length scales and the corresponding test error.
 #' @export
 #'
-estimate_lengthscale = function(data, location = NULL, max_avg_nn = 20, max_pct = NULL, dist = NULL, column_ls = FALSE){
-
+estimate_lengthscale = function(data, location = NULL, max_avg_nn = 20, batch = 1, max_pct = NULL, dist = NULL, column_ls = FALSE){
+  
+  if(nrow(data) != nrow(location)){
+    stop("The number of rows in location must match the number of rows in data. \n")
+  }
+  
+  unique_batches = unique(batch)
+  
+  if(length(unique_batches) == 1){
+    if(nrow(data) > 50000){
+      stop("There is too many observation to run it in one batch. Use groupondist() to make batches with size 20000 or smaller. \n")
+    }
+  }else{
+    if(nrow(data) != length(batch)){
+      stop("The length of batch must match the number of rows in data. \n")
+    }
+    
+    data = data[batch == unique_batches[1],]
+    location = location[batch == unique_batches[1],]
+  }
   
   if(is.null(dist)){
     if(is.null(location)){

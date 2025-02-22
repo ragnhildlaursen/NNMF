@@ -44,6 +44,8 @@ nnmf(
 \item{kernel_cutoff}{a value between 0 and 1, where everything below this value is set to zero in the kernel. Default is 0.5.}
 
 \item{normalize}{a logical value indicating whether the observations should be normalized. Default is TRUE.}
+
+\item{not_sc}{a logical value that indicates if the data is not single cell data(default = TRUE). It is recommended to set to FALSE if the data is not single-cell.}
 }
 \value{
 A list of the matrices derived by the factorization and the corresponding generalized Kullback-Leibler
@@ -53,6 +55,8 @@ A list of the matrices derived by the factorization and the corresponding genera
  \item error - Final error of the Generalized Kullback-Leibler
  \item errorvalues - a vector of the length of maxiter. Includes the GKL values calculated at the frequency of error_freq
  \item avg_nn - The average number of nearest neighbors included in averaging.
+ \item lengthscale - the lengthscale used for the analysis
+ \item batch - The batches of the analysis, which is 1 if all were in one batch. 
  }
 }
 \description{

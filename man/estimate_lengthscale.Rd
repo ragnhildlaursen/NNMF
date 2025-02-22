@@ -8,6 +8,7 @@ estimate_lengthscale(
   data,
   location = NULL,
   max_avg_nn = 20,
+  batch = 1,
   max_pct = NULL,
   dist = NULL,
   column_ls = FALSE

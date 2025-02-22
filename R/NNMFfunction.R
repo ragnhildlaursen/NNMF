@@ -110,7 +110,8 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 #' @param smallIter the number of iterations to run each initialization. Afterwards the initialization with the smallest error is run till convergence. Default is 100.
 #' @param error_freq an interger determining how often to calculate the error. Default is 10.
 #' @param kernel_cutoff a value between 0 and 1, where everything below this value is set to zero in the kernel. Default is 0.5.
-#' @param normalize a logical value indicating whether the observations should be normalized. Default is TRUE. 
+#' @param normalize a logical value indicating whether the observations should be normalized. Default is TRUE.
+#' @param not_sc a logical value that indicates if the data is not single cell data(default = TRUE). It is recommended to set to FALSE if the data is not single-cell.  
 #'
 #' @return A list of the matrices derived by the factorization and the corresponding generalized Kullback-Leibler
 #' \itemize{
@@ -119,6 +120,8 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 #'  \item error - Final error of the Generalized Kullback-Leibler
 #'  \item errorvalues - a vector of the length of maxiter. Includes the GKL values calculated at the frequency of error_freq
 #'  \item avg_nn - The average number of nearest neighbors included in averaging.
+#'  \item lengthscale - the lengthscale used for the analysis
+#'  \item batch - The batches of the analysis, which is 1 if all were in one batch. 
 #'  }
 #' @export
 #'
@@ -240,11 +243,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
     output$error = out$gkl
     output$errorvalues = out$gklvalues
     output$avg_nn = mean_nn
-    if(same_ls){
-      output$lengthscale = lengthscale
-    }else{
-      output$lengthscale = ls_min
-    }
+    output$lengthscale = lengthscale
     output$batch = batch
     
     return(output)
