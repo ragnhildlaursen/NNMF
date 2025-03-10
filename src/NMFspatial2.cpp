@@ -1,3 +1,4 @@
+
 #include <RcppArmadillo.h>
 #include <cmath>        // std::abs
 #include <tuple>
@@ -7,7 +8,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
-double error(arma::colvec y, arma::colvec mu) {
+double error(const arma::colvec& y, const arma::colvec& mu) {
   int ySize = y.size();
   double sum = 0;
   for (int i=0; i<ySize; i++) {
@@ -20,7 +21,7 @@ double error(arma::colvec y, arma::colvec mu) {
   return sum;
 }
 
-std::tuple<arma::mat, arma::mat, double> nmf1(arma::mat data, int noSignatures, int iter = 5000) {
+std::tuple<arma::mat, arma::mat, double> nmf1(const arma::mat& data, int noSignatures, int iter = 5000) {
   int genomes = data.n_rows;
   int mutTypes = data.n_cols;
 
@@ -62,7 +63,7 @@ std::tuple<arma::mat, arma::mat, double> nmf1(arma::mat data, int noSignatures, 
 }
 
 // [[Rcpp::export]]
-List nmfgen(arma::mat data, int noSignatures, int maxiter = 10000, double tolerance = 1e-8, int initial = 10, int smallIter = 100, int error_freq = 10) {
+List nmfgen(const arma::mat& data, int noSignatures, int maxiter = 10000, double tolerance = 1e-8, int initial = 10, int smallIter = 100, int error_freq = 10) {
   auto res = nmf1(data, noSignatures, smallIter);
   auto exposures = std::get<0>(res);
   auto signatures = std::get<1>(res);
@@ -127,7 +128,7 @@ List nmfgen(arma::mat data, int noSignatures, int maxiter = 10000, double tolera
 
 
 // [[Rcpp::export]]
-List nmfspatialbatch(arma::mat data, int noSignatures, List weight, List batch, int maxiter = 10000, double tolerance = 1e-8, int initial = 10, int smallIter = 100, int error_freq = 10) {
+List nmfspatialbatch(const arma::mat& data, int noSignatures, List weight, List batch, int maxiter = 10000, double tolerance = 1e-8, int initial = 10, int smallIter = 100, int error_freq = 10) {
   
   int nobatches = batch.size();
   
@@ -230,7 +231,7 @@ List nmfspatialbatch(arma::mat data, int noSignatures, List weight, List batch, 
 }
 
 // [[Rcpp::export]]
-List nmfspatialbatch2(arma::mat data, int noSignatures, List weight, List batch, int maxiter = 10000, double tolerance = 1e-8, int error_freq = 10) {
+List nmfspatialbatch2(const arma::mat& data, int noSignatures, List weight, List batch, int maxiter = 10000, double tolerance = 1e-8, int error_freq = 10) {
   
   int nobatches = batch.size();
   
@@ -323,7 +324,7 @@ List nmfspatialbatch2(arma::mat data, int noSignatures, List weight, List batch,
 }
 
 // [[Rcpp::export]]
-List nmfspatial(arma::mat data, int noSignatures, arma::mat weight, int maxiter = 10000, double tolerance = 1e-8, int initial = 5, int smallIter = 100, int error_freq = 10) {
+List nmfspatial(const arma::mat& data, int noSignatures, arma::mat weight, int maxiter = 10000, double tolerance = 1e-8, int initial = 5, int smallIter = 100, int error_freq = 10) {
   
   auto res = nmf1(data, noSignatures, smallIter);
   auto exposures = std::get<0>(res);
