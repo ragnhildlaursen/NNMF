@@ -9,15 +9,13 @@ using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 double error(const arma::colvec& y, const arma::colvec& mu) {
-  int ySize = y.size();
-  double sum = 0;
-  for (int i=0; i<ySize; i++) {
-    if (y[i] <= 0 || mu[i] <= 0) {
-      sum += mu[i];
-    } else {
-      sum += y[i] * (log(y[i]) - log(mu[i])) - y[i] + mu[i];
-    }
-  }
+  arma::uvec mask = (y > 0) && (mu > 0);
+  arma::colvec valid_y = y.elem(mask);
+  arma::colvec valid_mu = mu.elem(mask);
+  
+  double sum = arma::accu(valid_y % (arma::log(valid_y) - arma::log(valid_mu)) - valid_y + valid_mu);
+  sum += arma::accu(mu.elem(find(y <= 0 || mu <= 0))); // Handles non-positive cases
+  
   return sum;
 }
 
@@ -26,21 +24,19 @@ std::tuple<arma::mat, arma::mat, double> nmf1(const arma::mat& data, int noSigna
   int mutTypes = data.n_cols;
 
   arma::mat exposures(genomes, noSignatures,arma::fill::randu);
-  
   arma::mat signatures(noSignatures, mutTypes, arma::fill::randu);
-  
   arma::mat estimate = exposures * signatures;
   
   
   for(int t = 0; t < iter; t++){
     
-    signatures = signatures % (arma::trans(exposures) * (data/estimate));
+    signatures %= (arma::trans(exposures) * (data/estimate));
     signatures = arma::normalise(signatures,1,1);
     signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
 
     estimate = exposures * signatures;
 
-    exposures = exposures % ((data/estimate) * arma::trans(signatures));
+    exposures %= ((data/estimate) * arma::trans(signatures));
     exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
     
     estimate = exposures * signatures;
@@ -89,13 +85,13 @@ List nmfgen(const arma::mat& data, int noSignatures, int maxiter = 10000, double
   
   for(int t = 0; t < maxiter; t++){
     
-    signatures = signatures % (arma::trans(exposures) * (data/estimate));
+    signatures %= (arma::trans(exposures) * (data/estimate));
     signatures = arma::normalise(signatures,1,1);
     signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
     
     estimate = exposures * signatures;
     
-    exposures = exposures % ((data/estimate) * arma::trans(signatures));
+    exposures %= ((data/estimate) * arma::trans(signatures));
     exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
     
     estimate = exposures * signatures;
