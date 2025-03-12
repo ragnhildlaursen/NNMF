@@ -139,8 +139,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
   }  
     
   if(normalize){
-        row_sum = rowSums(data)
-        data = data/row_sum*ncol(data)
+    data <- sweep(data, 1, rowSums(data), FUN = "/") * ncol(data)
   }
     
     mean_nn = 0

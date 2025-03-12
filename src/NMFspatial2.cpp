@@ -9,14 +9,9 @@ using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 double error(const arma::colvec& y, const arma::colvec& mu) {
-  arma::uvec mask = (y > 0) && (mu > 0);
-  arma::colvec valid_y = y.elem(mask);
-  arma::colvec valid_mu = mu.elem(mask);
-  
-  double sum = arma::accu(valid_y % (arma::log(valid_y) - arma::log(valid_mu)) - valid_y + valid_mu);
-  sum += arma::accu(mu.elem(find(y <= 0 || mu <= 0))); // Handles non-positive cases
-  
-  return sum;
+    arma::uvec mask = (y > 0) && (mu > 0);
+    return arma::accu(y.elem(mask) % (arma::log(y.elem(mask)) - arma::log(mu.elem(mask))) - y.elem(mask) + mu.elem(mask))
+           + arma::accu(mu.elem(find(y <= 0 || mu <= 0)));
 }
 
 std::tuple<arma::mat, arma::mat, double> nmf1(const arma::mat& data, int noSignatures, int iter = 5000) {
@@ -32,12 +27,12 @@ std::tuple<arma::mat, arma::mat, double> nmf1(const arma::mat& data, int noSigna
     
     signatures %= (arma::trans(exposures) * (data/estimate));
     signatures = arma::normalise(signatures,1,1);
-    signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    signatures = arma::clamp(signatures, 1e-10, arma::datum::inf);
 
     estimate = exposures * signatures;
 
     exposures %= ((data/estimate) * arma::trans(signatures));
-    exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    exposures = arma::clamp(exposures, 1e-10, arma::datum::inf);
     
     estimate = exposures * signatures;
     
@@ -87,12 +82,12 @@ List nmfgen(const arma::mat& data, int noSignatures, int maxiter = 10000, double
     
     signatures %= (arma::trans(exposures) * (data/estimate));
     signatures = arma::normalise(signatures,1,1);
-    signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    signatures = arma::clamp(signatures, 1e-10, arma::datum::inf);
     
     estimate = exposures * signatures;
     
     exposures %= ((data/estimate) * arma::trans(signatures));
-    exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    exposures = arma::clamp(exposures, 1e-10, arma::datum::inf);
     
     estimate = exposures * signatures;
     
@@ -154,13 +149,13 @@ List nmfspatialbatch(const arma::mat& data, int noSignatures, List weight, List 
   for(int t = 0; t < maxiter; t++){
     //exposure update
     exposures = exposures % ((data/estimate) * arma::trans(signatures));
-    exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    exposures = arma::clamp(exposures, 1e-10, arma::datum::inf);
 
     estimate = exposures * signatures;
 
     //signature update
     signatures = signatures % (arma::trans(exposures) * (data/estimate));
-    signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    signatures = arma::clamp(signatures, 1e-10, arma::datum::inf);
     signatures = arma::normalise(signatures,1,1);
 
     estimate = exposures * signatures;
@@ -179,14 +174,14 @@ List nmfspatialbatch(const arma::mat& data, int noSignatures, List weight, List 
 
       exposures.rows(batch_index) = exposures_batch;
     }
-    exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    exposures = arma::clamp(exposures, 1e-10, arma::datum::inf);
     exposures = arma::normalise(exposures,1,0);
     
     estimate = exposures * signatures;
 
     //signature update
     signatures = signatures % (arma::trans(exposures) * (data/estimate));
-    signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    signatures = arma::clamp(signatures, 1e-10, arma::datum::inf);
 
     estimate = exposures * signatures;
 
@@ -247,13 +242,13 @@ List nmfspatialbatch2(const arma::mat& data, int noSignatures, List weight, List
   for(int t = 0; t < maxiter; t++){
     //exposure update
     exposures = exposures % ((data/estimate) * arma::trans(signatures));
-    exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    exposures = arma::clamp(exposures, 1e-10, arma::datum::inf);
 
     estimate = exposures * signatures;
 
     //signature update
     signatures = signatures % (arma::trans(exposures) * (data/estimate));
-    signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    signatures = arma::clamp(signatures, 1e-10, arma::datum::inf);
     signatures = arma::normalise(signatures,1,1);
 
     estimate = exposures * signatures;
@@ -274,14 +269,14 @@ List nmfspatialbatch2(const arma::mat& data, int noSignatures, List weight, List
 
       exposures.rows(batch_index) = exposures_batch;
     }
-    exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    exposures = arma::clamp(exposures, 1e-10, arma::datum::inf);
     exposures = arma::normalise(exposures,1,0);
     
     estimate = exposures * signatures;
 
     //signature update
     signatures = signatures % (arma::trans(exposures) * (data/estimate));
-    signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    signatures = arma::clamp(signatures, 1e-10, arma::datum::inf);
     
     estimate = exposures * signatures;
     
@@ -348,13 +343,13 @@ List nmfspatial(const arma::mat& data, int noSignatures, arma::mat weight, int m
   for(int t = 0; t < maxiter; t++){
     //exposure update
     exposures = exposures % ((data/estimate) * arma::trans(signatures));
-    exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    exposures = arma::clamp(exposures, 1e-10, arma::datum::inf);
     
     estimate = exposures * signatures;
     
     //signature update
     signatures = signatures % (arma::trans(exposures) * (data/estimate));
-    signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    signatures = arma::clamp(signatures, 1e-10, arma::datum::inf);
     signatures = arma::normalise(signatures,1,1);
     
     estimate = exposures * signatures;
@@ -365,14 +360,14 @@ List nmfspatial(const arma::mat& data, int noSignatures, arma::mat weight, int m
     exposures = exposures.each_col() / exp_sum;
     exposures = weight * exposures;
     exposures = exposures.each_col() % exp_sum;
-    exposures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    exposures = arma::clamp(exposures, 1e-10, arma::datum::inf);
     exposures = arma::normalise(exposures,1,0);
     
     estimate = exposures * signatures;
     
     //signature update
     signatures = signatures % (arma::trans(exposures) * (data/estimate));
-    signatures.transform( [](double val) {return (val < 1e-10) ? 1e-10 : val; } );
+    signatures = arma::clamp(signatures, 1e-10, arma::datum::inf);
     
     estimate = exposures * signatures;
 
