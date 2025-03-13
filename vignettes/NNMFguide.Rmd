@@ -36,10 +36,17 @@ Below we load the package and simulate a dataset of size 1000x100.
 data = matrix(rpois(1000*100,10), nrow = 1000) # load your count data here (observations x features)
 location = matrix(runif(1000*2), nrow = 1000) # location of your observation (observations x 2)
 ```
-
-The method can run in the following way, where the number of signatures is set to 2 in this case:
+First of all it is possible to run regular NMF, where the locations are not considered:
 ```{r}
 library(NNMF)
+res = nnmf(data = data, noSignatures = 2)
+
+res$weights[1:2,1:2]
+res$signatures[1:2,1:2]
+```
+
+The locations can then be incoorporated into the model in the following way, where the number of signatures is again set to 2 in this case:
+```{r}
 res = nnmf(data = data, noSignatures = 2, location = location)
 
 dim(res$weights) # The weights for each signature
@@ -52,7 +59,8 @@ If you have multiple slices, then you can simply set the id of the slice as the 
 
 ```{r}
 slice_id = rep(c(1:10), each = 100) 
-res = nnmf(data = data, noSignatures = 2, location = location, batch = slice_id)
+
+res = nnmf(data = data, noSignatures = 2, location = location, batch = slice_id, maxiter = 10)
 
 dim(res$weights) # The weights for each signature
 dim(res$signatures) # The two signatures

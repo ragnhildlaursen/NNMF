@@ -9,6 +9,7 @@
 #' 
 #' @import Rcpp
 #' @import RcppArmadillo
+#' @import Matrix
 dist_index = function(X,index){
   
   target <- X[index, ]  # Extract the index rows
@@ -128,7 +129,7 @@ groupondist = function(location, size = NULL, no_groups = NULL){
 nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch = 1, maxiter = 1000, tolerance = 1e-10, initial = 3, smallIter = 50, error_freq = 10,kernel_cutoff = 0.1,normalize = TRUE, not_sc = FALSE){
 
   if(!is.matrix(data)){
-    stop("The data needs to be of class matrix.")
+    stop("The data needs to be of class matrix. \n")
   }
   if(sum(colSums(data) == 0) > 0){
     stop("Remove columns in the data that only contain zeroes. \n")
@@ -140,6 +141,7 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
     
   if(normalize){
     data <- sweep(data, 1, rowSums(data), FUN = "/") * ncol(data)
+    cat('Normalized the data, so each row sums to ',ncol(data),'(the number of columns in the data). \n')
   }
     
     mean_nn = 0
@@ -171,44 +173,50 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
 
             lengthscale = mean(apply(sqrt(dist),1,function(x) sort(x)[15]))
             
-            cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results. \n")
+            cat("The length scale is set to", lengthscale, ". Adjust for a smaller or larger neighborhood after assessing results or use the function estimate_lengthscale() for a more appropriate length scale. \n")
           }
           
           # calculating covariance
           sigma = exp(-dist/(lengthscale^2))
           sigma[sigma < kernel_cutoff] = 0
           
+          
           mean_nn = mean(rowSums(sigma > 0) - 1)
-          weight = sigma/rowSums(sigma)
-
+          sigma = sigma/rowSums(sigma)
+          sigma <- Matrix(sigma, sparse = TRUE)
+          weight = sigma
+          
           out = nmfspatial(data = data, noSignatures = noSignatures, weight = weight, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter)
 
       }else{
-        
         if(nrow(data) != length(batch)){
           stop("The length of batch must match the number of rows in data. \n")
         }
         
         weights = list()
-        batch_list = list()
-        first_batch = TRUE
-        for(i in unique_batches){
-            index = which(batch == i)
-            batch_list[[paste(i)]] = index - 1
-
-            X = location[index,]
         
-            dist = dist_fun(X)
+        first_batch = TRUE
+
+        batch_list <- list()
+        
+        for (i in unique_batches) {
+          index <- which(batch == i)
+          batch_list[[paste(i)]] <- index - 1  # Store numeric indices
+          
+          X = location[index,]
+        
+          dist = dist_fun(X)
             
-            if(is.null(lengthscale)){
+          if(is.null(lengthscale)){
               lengthscale = mean(apply(sqrt(dist),1,function(x) sort(x)[15]))
               
               cat("The lengthscale is set to", lengthscale, ". Specify accordingly for a smaller or larger neighborhood after assessing results. \n")
-            } 
+          } 
             
-            # calculating covariance
-            sigma = exp(-dist/(lengthscale^2))
-            sigma[sigma < kernel_cutoff] = 0
+          # calculating covariance
+          sigma = exp(-dist/(lengthscale^2))
+          sigma[sigma < kernel_cutoff] = 0
+            
             
             if(first_batch){
               mean_nn = mean(rowSums(sigma > 0) - 1)
@@ -216,16 +224,15 @@ nnmf = function(data, noSignatures, location = NULL, lengthscale = NULL, batch =
             }else{
               mean_nn = 0.5*mean_nn + 0.5*mean(rowSums(sigma > 0) - 1)
             }
-
-            weights[[i]] = sigma/rowSums(sigma)
+            sigma = sigma/rowSums(sigma)
+            sigma <- Matrix(sigma, sparse = TRUE)
+            weights[[paste(i)]] = sigma
         }
 
         if(initial == 1){
-
+          print('error not happened')
           out = nmfspatialbatch2(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, error_freq = error_freq)
-        
         }else{
-
           out = nmfspatialbatch(data = data, noSignatures = noSignatures, weight = weights, batch = batch_list, maxiter = maxiter, tolerance = tolerance, initial = initial, smallIter = smallIter, error_freq = error_freq)
           
       }

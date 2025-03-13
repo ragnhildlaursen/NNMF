@@ -65,14 +65,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // nmfspatial
-List nmfspatial(const arma::mat& data, int noSignatures, arma::mat weight, int maxiter, double tolerance, int initial, int smallIter, int error_freq);
+List nmfspatial(const arma::mat& data, int noSignatures, arma::sp_mat weight, int maxiter, double tolerance, int initial, int smallIter, int error_freq);
 RcppExport SEXP _NNMF_nmfspatial(SEXP dataSEXP, SEXP noSignaturesSEXP, SEXP weightSEXP, SEXP maxiterSEXP, SEXP toleranceSEXP, SEXP initialSEXP, SEXP smallIterSEXP, SEXP error_freqSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< int >::type noSignatures(noSignaturesSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type weight(weightSEXP);
+    Rcpp::traits::input_parameter< arma::sp_mat >::type weight(weightSEXP);
     Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
     Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
     Rcpp::traits::input_parameter< int >::type initial(initialSEXP);

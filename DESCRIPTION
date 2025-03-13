@@ -7,7 +7,7 @@ Author: Ragnhild Laursen
 Maintainer: Ragnhild Laursen <ragnhild@clin.au.dk>
 Description: The package can analyze spatial transciptome data to recover soft clusters together with corresponding gene programs. The package provides a fast function 'nnmf' to calculate the factors of non-negative matrix factorization for spatial data. It makes neighboring observations share similar weights for the different factors using gaussian smoothing in the multiplicative updates of NMF.
 License: MIT + file LICENSE
-Imports: Rcpp (>= 1.0.11)
+Imports: Rcpp (>= 1.0.11), Matrix
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.3.2
 Encoding: UTF-8

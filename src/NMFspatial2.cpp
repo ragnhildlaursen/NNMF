@@ -145,7 +145,7 @@ List nmfspatialbatch(const arma::mat& data, int noSignatures, List weight, List 
   double gklOld = error(arma::vectorise(data),arma::vectorise(estimate));
   double gklNew = 2*gklOld;
   arma::vec gklvalues(maxiter);
-
+ 
   for(int t = 0; t < maxiter; t++){
     //exposure update
     exposures = exposures % ((data/estimate) * arma::trans(signatures));
@@ -159,12 +159,12 @@ List nmfspatialbatch(const arma::mat& data, int noSignatures, List weight, List 
     signatures = arma::normalise(signatures,1,1);
 
     estimate = exposures * signatures;
-
+    
     //exposure update w. smoothing
     exposures = exposures % ((data/estimate) * arma::trans(signatures));
     for(int b=0; b < nobatches; b++){
       arma::uvec batch_index = batch[b];
-      arma::mat w_mat = weight[b];
+      arma::sp_mat w_mat = as<arma::sp_mat>(weight[b]);
       arma::mat exposures_batch = exposures.rows(batch_index);
       
       arma::colvec exp_sum = sum(exposures_batch,1);
@@ -257,7 +257,7 @@ List nmfspatialbatch2(const arma::mat& data, int noSignatures, List weight, List
     exposures = exposures % ((data/estimate) * arma::trans(signatures));
     for(int b=0; b < nobatches; b++){
       arma::uvec batch_index = batch[b];
-      arma::mat w_mat = weight[b];
+      arma::sp_mat w_mat = as<arma::sp_mat>(weight[b]);
       arma::mat exposures_batch = exposures.rows(batch_index);
 
       arma::colvec exp_sum = sum(exposures_batch,1);
@@ -315,7 +315,7 @@ List nmfspatialbatch2(const arma::mat& data, int noSignatures, List weight, List
 }
 
 // [[Rcpp::export]]
-List nmfspatial(const arma::mat& data, int noSignatures, arma::mat weight, int maxiter = 10000, double tolerance = 1e-8, int initial = 5, int smallIter = 100, int error_freq = 10) {
+List nmfspatial(const arma::mat& data, int noSignatures, arma::sp_mat weight, int maxiter = 10000, double tolerance = 1e-8, int initial = 5, int smallIter = 100, int error_freq = 10) {
   
   auto res = nmf1(data, noSignatures, smallIter);
   auto exposures = std::get<0>(res);
