@@ -9,9 +9,9 @@ using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 double error(const arma::colvec& y, const arma::colvec& mu) {
-    arma::uvec mask = (y > 0) && (mu > 0);
-    return arma::accu(y.elem(mask) % (arma::log(y.elem(mask)) - arma::log(mu.elem(mask))) - y.elem(mask) + mu.elem(mask))
-           + arma::accu(mu.elem(find(y <= 0 || mu <= 0)));
+    arma::colvec y_adj = y + 1e-6;
+    arma::colvec mu_adj = mu + 1e-6;
+    return arma::accu(y_adj % (arma::log(y_adj) - arma::log(mu_adj)) - y_adj + mu_adj);
 }
 
 std::tuple<arma::mat, arma::mat, double> nmf1(const arma::mat& data, int noSignatures, int iter = 5000) {
