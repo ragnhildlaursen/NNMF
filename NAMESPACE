@@ -1,7 +1,6 @@
 useDynLib(NNMF, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
 import(Matrix)
-exportPattern("^[[:alpha:]]+")
 export(groupondist)
 export(nnmf)
 export(topfeatures)

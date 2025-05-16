@@ -21,6 +21,8 @@ estimate_lengthscale(
 
 \item{max_avg_nn}{An integer determining the the average neighbor for the maximum length scale tested. The default is 20.}
 
+\item{batch}{A vector of the same length as the number of rows in data, that specifies batches in your data. Default = 1, if there is only one batch.}
+
 \item{max_pct}{A number between 0 and 1 determining the percentage of data points to the maximum length scale}
 
 \item{dist}{A symmetric distance matrix of the data points. Must have the same number of rows and columns as the number of rows in data. If this is specified the location is ignored.}
