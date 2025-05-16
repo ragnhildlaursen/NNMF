@@ -58,6 +58,7 @@ genes = paste0('gene',1:100)
 top_name = topfeatures(signatures = res$signatures,feature_names = genes, ntop = 10)
 
 ```
+## Citing the work 
 
-
+For more details on the methods and examples go to the [Manuscript](https://www.biorxiv.org/content/10.1101/2025.04.26.650724v1).
 
