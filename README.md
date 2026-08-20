@@ -60,5 +60,5 @@ top_name = topfeatures(signatures = res$signatures,feature_names = genes, ntop =
 ```
 ## Citing the work 
 
-For more details on the methods and examples go to the [Manuscript](https://www.biorxiv.org/content/10.1101/2025.04.26.650724v1).
+For more details on the methods and examples go to the [Manuscript](https://link.springer.com/article/10.1186/s13059-025-03846-6).
 
