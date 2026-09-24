@@ -12,17 +12,23 @@ topfeatures = function(signatures, feature_names, ntop = 10){
     stop("The feature_names need to be the same length as the number of columns in signatures. \n")
   }
   dat = t(signatures)
-  dat_new=NULL
-  for(ii in 1:nrow(dat)){
-    rr=dat[ii,]
-    m1 = which.max(rr)
-    m2 = which.max(rr[-m1])
-    
-    mm = rep(rr[m1], length(rr))
-    mm[m1] = rr[m2]
-    
-    ns=rr*log(1 + rr/(mm+1e-10))
-    dat_new=rbind(dat_new, ns)
+  dat_new <- NULL
+
+  for (ii in 1:nrow(dat)) {
+
+    rr <- dat[ii, ]
+
+    ord <- order(rr, decreasing = TRUE)
+
+    m1 <- ord[1]
+    m2 <- ord[2]
+
+    mm <- rep(rr[m1], length(rr))
+    mm[m1] <- rr[m2]
+
+    ns <- rr * log(1 + rr / (mm + 1e-10))
+
+    dat_new <- rbind(dat_new, ns)
   }
   
   weight_topgene = NULL
